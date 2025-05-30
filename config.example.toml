@@ -231,3 +231,58 @@ default_audio_encoding = "MP3"
 # 是否隐藏日志信息
 # Whether to hide logs in the UI
 hide_log = false
+
+[streaming]
+# Optional: YouTube Data API v3 key (limited functionality, primarily for public data)
+# Environment variable: YOUTUBE_API_KEY
+# youtube_api_key = "YOUR_YOUTUBE_API_KEY"
+
+# Optional: Path to YouTube client_secret.json for OAuth 2.0 (for user-specific actions)
+# Environment variable: YOUTUBE_CLIENT_SECRETS_FILE
+# youtube_client_secrets_file = "/path/to/client_secret.json"
+
+# Optional: Path to stored YouTube OAuth 2.0 credentials file (generated after successful auth)
+# Environment variable: YOUTUBE_CREDENTIALS_FILE
+# youtube_credentials_file = "/path/to/youtube_credentials.json"
+
+# Optional: Default YouTube Live Stream ID (if you have a specific, persistent one)
+# This is used by StreamingOrchestrator to check YouTube's stream status.
+# Environment variable: YOUTUBE_LIVE_STREAM_ID
+# youtube_live_stream_id = "YOUR_YOUTUBE_LIVE_STREAM_ID"
+
+# Target RTMP Ingest URL (e.g., for Google Cloud Media CDN, YouTube Live, Twitch)
+# Example for Media CDN: "rtmp://your-media-cdn-endpoint/live"
+# Example for YouTube: "rtmp://a.rtmp.youtube.com/live2"
+# Environment variable: MEDIA_CDN_RTMP_URL
+media_cdn_rtmp_url = "rtmp://localhost/live" # Default to a local server for testing
+
+# Stream Key for the target RTMP server (e.g., YouTube Stream Key, Media CDN Stream Key)
+# Environment variable: MEDIA_CDN_STREAM_KEY
+media_cdn_stream_key = "test_stream_key"
+
+# Default video resolution for streaming
+# Environment variable: STREAMING_DEFAULT_RESOLUTION
+default_resolution = "1920x1080"
+
+# Default Frames Per Second (FPS) for streaming
+# Environment variable: STREAMING_DEFAULT_FPS
+default_fps = 30
+
+# Default video bitrate for streaming (e.g., "4500k", "6M")
+# Environment variable: STREAMING_DEFAULT_VIDEO_BITRATE
+default_video_bitrate = "4500k"
+
+# Default audio bitrate for streaming (e.g., "128k", "192k")
+# Environment variable: STREAMING_DEFAULT_AUDIO_BITRATE
+default_audio_bitrate = "128k"
+
+# Default FFmpeg input source. This can be a test pattern, a placeholder video file,
+# or a specific device/capture method.
+# Example for a test pattern (streams for 1 hour): "lavfi:testsrc=size=1920x1080:rate=30:duration=3600"
+# Example for a local file: "/path/to/your/placeholder_video.mp4" (ensure FFmpeg has access)
+# Environment variable: STREAMING_FFMPEG_INPUT_SOURCE
+ffmpeg_input_source = "lavfi:testsrc=size=1920x1080:rate=30:duration=3600"
+
+# Optional: Full path to the FFmpeg executable (if not in system PATH or to use a specific version)
+# Environment variable: FFMPEG_PATH
+# ffmpeg_path = "/usr/bin/ffmpeg"
