@@ -51,7 +51,7 @@ class FFmpegManager:
         self.config = config
         self.logger = logger_instance or logger.bind(name=self.__class__.__name__) # Bind class name to logger
         self.ffmpeg_process: Optional[subprocess.Popen] = None
-        
+
         from app.config import config as app_global_config # Import here to avoid top-level circular if not careful
         self.ffmpeg_path: str = app_global_config.streaming.get("ffmpeg_path", "ffmpeg")
         if self.ffmpeg_path != "ffmpeg": # Log only if it's not the default
@@ -149,10 +149,10 @@ class FFmpegManager:
             "-flags", "+global_header", # Needed by some RTMP servers
             rtmp_output_url
         ])
-        
+
         # General flags
         cmd.extend(["-hide_banner", "-nostats", "-loglevel", "error"])
-        
+
         self.logger.debug(f"Built FFmpeg command: {' '.join(shlex.quote(str(c)) for c in cmd)}")
         return cmd
 
@@ -182,9 +182,9 @@ class FFmpegManager:
                 # Close FDs on Unix-like systems for cleaner process management
                 close_fds=sys.platform != "win32"
             )
-            
+
             time.sleep(0.5) # Allow FFmpeg a moment to start or fail
-            
+
             if self.ffmpeg_process.poll() is not None:
                 # Process terminated quickly, indicating an error
                 # Capture output before it's lost
@@ -227,7 +227,7 @@ class FFmpegManager:
         """
         if not self.is_running() or not self.ffmpeg_process: # Added not self.ffmpeg_process for robustness
             self.logger.info("FFmpeg stop request: Process is not running or already stopped.")
-            self.ffmpeg_process = None 
+            self.ffmpeg_process = None
             return
 
         pid = self.ffmpeg_process.pid
@@ -256,7 +256,7 @@ class FFmpegManager:
         finally:
             # Ensure stdout/stderr are read to prevent pipe buffer issues if Popen used text=True and pipes
             if self.ffmpeg_process and hasattr(self.ffmpeg_process, 'stdout') and self.ffmpeg_process.stdout:
-                 try: self.ffmpeg_process.stdout.close() 
+                 try: self.ffmpeg_process.stdout.close()
                  except Exception: pass
             if self.ffmpeg_process and hasattr(self.ffmpeg_process, 'stderr') and self.ffmpeg_process.stderr:
                  try: self.ffmpeg_process.stderr.close()
@@ -290,17 +290,17 @@ class FFmpegManager:
         if not self.ffmpeg_process:
             self.logger.debug("get_output called but FFmpeg process is not set.")
             return stdout_lines, stderr_lines
-        
+
         # This method is primarily for getting output after a process has terminated or if it failed quickly.
         # For continuous live output monitoring, a threaded approach for reading pipes is necessary.
         # Popen's communicate() is blocking until EOF, so it's used here with a small timeout
         # if the process has already terminated.
-        
+
         if self.ffmpeg_process.poll() is not None: # Process has terminated
             self.logger.debug(f"FFmpeg process (PID: {self.ffmpeg_process.pid}) has terminated. Reading remaining output.")
             try:
                 # Use a timeout even for communicate as a safeguard
-                out_bytes, err_bytes = self.ffmpeg_process.communicate(timeout=1) 
+                out_bytes, err_bytes = self.ffmpeg_process.communicate(timeout=1)
                 if out_bytes:
                     stdout_lines = out_bytes.splitlines()[-max_lines:]
                 if err_bytes:
@@ -317,7 +317,7 @@ class FFmpegManager:
             # if self.ffmpeg_process.stdout:
             #    stdout_lines.append(self.ffmpeg_process.stdout.readline().strip()) # This would still block
             pass
-            
+
         return stdout_lines, stderr_lines
 
 # Example usage (for testing this module directly)
@@ -337,9 +337,9 @@ if __name__ == "__main__":
         ffmpeg_input_source="lavfi:testsrc=size=640x360:rate=15"
         # ffmpeg_input_source="color=c=blue:s=640x360:r=15" # Alternative test source
     )
-    
+
     # Test with a file input if you have one
-    # test_video_file = "path/to/your/test.mp4" 
+    # test_video_file = "path/to/your/test.mp4"
     # if os.path.exists(test_video_file):
     #     test_config.ffmpeg_input_source = test_video_file
     # else:
@@ -347,7 +347,7 @@ if __name__ == "__main__":
 
 
     manager = FFmpegManager(config=test_config)
-    
+
     logger.info("Building FFmpeg command...")
     cmd = manager.build_ffmpeg_command()
     logger.info(f"Command: {' '.join(shlex.quote(str(c)) for c in cmd)}")
@@ -356,7 +356,7 @@ if __name__ == "__main__":
     if manager.start():
         logger.info("FFmpeg started. Streaming for 10 seconds...")
         time.sleep(10)
-        
+
         if manager.is_running():
             logger.info("FFmpeg is still running.")
         else:

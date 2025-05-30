@@ -183,7 +183,7 @@ if __name__ == "__main__":
     service.start_stream()
     status = service.get_stream_status()
     logger.info(f"Status after start: {status}")
-    
+
     new_fps_config = StreamConfig(
         stream_key="my_secret_stream_key",
         rtmp_url="rtmp://a.rtmp.youtube.com/live2",

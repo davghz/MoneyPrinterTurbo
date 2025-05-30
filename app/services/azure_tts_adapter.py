@@ -82,7 +82,7 @@ def _format_duration_to_offset_100ns(duration: Union[str, int]) -> int:
         m = int(parts[1])
         s_parts = parts[2].split('.')
         s = int(s_parts[0])
-        
+
         # Azure SDK evt.duration gives 7 decimal places for seconds (100ns precision)
         hundred_ns_part = 0
         if len(s_parts) > 1 and len(s_parts[1]) > 0:
@@ -90,7 +90,7 @@ def _format_duration_to_offset_100ns(duration: Union[str, int]) -> int:
 
         total_100ns = (h * 3600 + m * 60 + s) * 10_000_000 + hundred_ns_part
         return total_100ns
-        
+
     if isinstance(duration, int): # Azure SDK audio_offset is already in 100ns ticks
         return duration
     logger.warning(f"Unexpected duration type for Azure TTS: {type(duration)}. Returning 0.")
@@ -184,7 +184,7 @@ class AzureTTSAdapter(TextToSpeechService):
             # evt.duration is a timedelta object, convert to 100ns ticks
             duration_100ns = int(evt.duration.total_seconds() * 10_000_000)
             offset_100ns = evt.audio_offset
-            
+
             sub_maker.subs.append(evt.text)
             sub_maker.offset.append((offset_100ns, offset_100ns + duration_100ns))
 
@@ -194,7 +194,7 @@ class AzureTTSAdapter(TextToSpeechService):
             property_id=speechsdk.PropertyId.SpeechServiceResponse_RequestWordBoundary,
             value="true",
         )
-        
+
         output_format_enum = kwargs.get("output_format", speechsdk.SpeechSynthesisOutputFormat.Audio48Khz192KBitRateMonoMp3)
         speech_config.set_speech_synthesis_output_format(output_format_enum)
 
@@ -202,7 +202,7 @@ class AzureTTSAdapter(TextToSpeechService):
         speech_synthesizer = speechsdk.SpeechSynthesizer(
             speech_config=speech_config, audio_config=audio_config
         )
-        
+
         # Connect the event to the callback
         speech_synthesizer.synthesis_word_boundary.connect(speech_synthesizer_word_boundary_cb)
 
@@ -218,7 +218,7 @@ class AzureTTSAdapter(TextToSpeechService):
             if cancellation_details.reason == speechsdk.CancellationReason.Error:
                 logger.error(f"Azure SDK TTS error details: {cancellation_details.error_details}")
             raise RuntimeError(f"Azure SDK TTS synthesis failed: {cancellation_details.reason} - {cancellation_details.error_details}")
-        
+
         # Should not be reached if logic is correct and an exception is raised on failure
         return sub_maker
 
@@ -252,12 +252,12 @@ class AzureTTSAdapter(TextToSpeechService):
             ValueError: If V2 voice is selected but key/region are missing.
         """
         text = text.strip()
-        
+
         # Check if it's a V2 voice (e.g., "en-US-AndrewMultilingualNeural-V2-Male" -> "en-US-AndrewMultilingualNeural-V2")
         azure_v2_voice_full_name = _is_azure_v2_voice(voice_id)
 
         sub_maker_result: EdgeSubMaker = None # Type hint for clarity
-        
+
         for attempt in range(3): # Retry loop
             try:
                 if azure_v2_voice_full_name:
@@ -269,7 +269,7 @@ class AzureTTSAdapter(TextToSpeechService):
                     logger.info(f"Using edge_tts (v1) for voice: {parsed_v1_voice_id}, attempt: {attempt+1}")
                     voice_rate = float(kwargs.get("voice_rate", 1.0))
                     rate_str = _convert_rate_to_percent_str(voice_rate)
-                    
+
                     # asyncio.run can be problematic if an event loop is already running.
                     # Consider using a helper that gets or creates a loop if this adapter
                     # might be called from an async context in the future.
@@ -277,7 +277,7 @@ class AzureTTSAdapter(TextToSpeechService):
                     sub_maker_result = asyncio.run(
                         self._synthesize_v1_edge_tts(text, parsed_v1_voice_id, output_filename, rate_str)
                     )
-                
+
                 if sub_maker_result and hasattr(sub_maker_result, 'subs') and sub_maker_result.subs:
                     logger.info(f"Azure TTS synthesis successful: '{output_filename}'")
                     return output_filename, sub_maker_result
@@ -288,7 +288,7 @@ class AzureTTSAdapter(TextToSpeechService):
                 logger.error(f"Azure TTS synthesis attempt {attempt+1} failed for voice '{voice_id}': {e}")
                 if attempt == 2: # Last attempt
                     raise RuntimeError(f"Azure TTS failed after 3 attempts for voice '{voice_id}': {e}") from e
-        
+
         logger.error(f"Azure TTS synthesis ultimately failed for '{voice_id}' after retries without producing subs.")
         return output_filename, None # Should ideally not be reached if exceptions are raised
 
@@ -976,7 +976,7 @@ Gender: Female
 Name: zh-CN-XiaoxiaoMultilingualNeural-V2
 Gender: Female
         """.strip()
-        
+
         voices = []
         pattern = re.compile(r"Name:\s*(.+?)\s*Gender:\s*(.+?)\s*\n", re.MULTILINE)
         matches = pattern.findall(azure_voices_str + "\n") # Add newline to match last entry
@@ -990,7 +990,7 @@ Gender: Female
                     voices.append(full_voice_name)
             else:
                 voices.append(full_voice_name)
-        
+
         voices.sort()
         return voices
 

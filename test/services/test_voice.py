@@ -62,18 +62,18 @@ class TestVoiceServiceAdapters(unittest.TestCase):
     def test_siliconflow_adapter(self):
         adapter = SiliconflowTTSAdapter()
         voice_id = "siliconflow:FunAudioLLM/CosyVoice2-0.5B:alex-Male" # Full prefixed name
-        
+
         audio_file_path = os.path.join(temp_dir, f"test_tts_siliconflow_adapter_alex.mp3")
         subtitle_file_path = audio_file_path + ".srt"
 
         _, subtitle_data = adapter.synthesize_speech(
-            text=text_en, 
-            voice_id=voice_id, 
+            text=text_en,
+            voice_id=voice_id,
             output_filename=audio_file_path,
             voice_rate=voice_rate_default,
             voice_volume=voice_volume_default
         )
-        
+
         self.assertTrue(os.path.exists(audio_file_path))
         self.assertIsNotNone(subtitle_data)
         if subtitle_data:
@@ -86,7 +86,7 @@ class TestVoiceServiceAdapters(unittest.TestCase):
     def test_azure_adapter_v1_voice(self):
         adapter = AzureTTSAdapter()
         voice_id = "en-US-JennyNeural-Female" # A V1 style voice
-        
+
         audio_file_path = os.path.join(temp_dir, f"test_tts_azure_adapter_v1.mp3")
         subtitle_file_path = audio_file_path + ".srt"
 
@@ -108,10 +108,10 @@ class TestVoiceServiceAdapters(unittest.TestCase):
     def test_azure_adapter_v2_voice(self):
         adapter = AzureTTSAdapter()
         voice_id = "en-US-AndrewMultilingualNeural-V2-Male" # A V2 style voice
-        
+
         audio_file_path = os.path.join(temp_dir, f"test_tts_azure_adapter_v2.mp3")
         subtitle_file_path = audio_file_path + ".srt"
-        
+
         _, subtitle_data = adapter.synthesize_speech(
             text=text_en,
             voice_id=voice_id,
@@ -135,7 +135,7 @@ class TestVoiceServiceAdapters(unittest.TestCase):
             return
 
         voice_id = app_config.google_tts.get("default_voice_name", "en-US-Wavenet-D") # Use configured default
-        
+
         audio_file_path = os.path.join(temp_dir, f"test_tts_google_adapter.mp3")
         # Subtitle file not created by default by Google adapter's synthesize_speech in the same way
         
@@ -217,7 +217,7 @@ class TestMainTTSDispatcher(unittest.TestCase):
     def test_tts_dispatcher_google(self):
         # Use a voice name known to be available or from config
         gcp_voice_name = app_config.google_tts.get("default_voice_name", "en-US-Wavenet-D")
-        voice_id = f"google:{gcp_voice_name}" 
+        voice_id = f"google:{gcp_voice_name}"
         audio_file_path = os.path.join(temp_dir, "test_tts_dispatcher_google.mp3")
         
         subtitle_data = vs.tts(
@@ -229,8 +229,8 @@ class TestMainTTSDispatcher(unittest.TestCase):
         )
         self.assertTrue(os.path.exists(audio_file_path))
         # Google returns a list of timepoints, not a SubMaker object directly from adapter
-        self.assertIsNotNone(subtitle_data) 
-        self.assertIsInstance(subtitle_data, list) 
+        self.assertIsNotNone(subtitle_data)
+        self.assertIsInstance(subtitle_data, list)
         logger.info(f"Google dispatcher test subtitle data: {subtitle_data}")
 
 

@@ -42,7 +42,7 @@ class GoogleCloudTTS(TextToSpeechService):
         # Config value for service_account_key_path takes precedence.
         # If not set, Google library automatically checks GOOGLE_APPLICATION_CREDENTIALS.
         key_path = app_config.google_tts.get("service_account_key_path")
-        
+
         if key_path:
             logger.info(f"Initializing GoogleCloudTTS with service account key from config: {key_path}")
             try:
@@ -55,7 +55,7 @@ class GoogleCloudTTS(TextToSpeechService):
             # Otherwise, ADC is used.
             logger.info("Initializing GoogleCloudTTS with Application Default Credentials or GOOGLE_APPLICATION_CREDENTIALS env var if set.")
             self.client = texttospeech.TextToSpeechClient()
-        
+
         self.default_voice_id: str = app_config.google_tts.get("default_voice_name", "en-US-Wavenet-D")
         self.default_language_code: str = app_config.google_tts.get("default_language_code", "en-US")
         self.default_audio_encoding_str: str = app_config.google_tts.get("default_audio_encoding", "MP3").upper()
@@ -129,7 +129,7 @@ class GoogleCloudTTS(TextToSpeechService):
                     current_language_code = f"{current_voice_id.split('-')[0]}-{current_voice_id.split('-')[1]}"
                 else:
                     current_language_code = self.default_language_code
-            
+
             logger.debug(f"Using voice: {current_voice_id}, language: {current_language_code}")
 
             voice_params = texttospeech.VoiceSelectionParams(
@@ -139,7 +139,7 @@ class GoogleCloudTTS(TextToSpeechService):
             audio_encoding_str_kwarg = kwargs.get("audio_encoding")
             final_audio_encoding_str = audio_encoding_str_kwarg.upper() if audio_encoding_str_kwarg else self.default_audio_encoding_str
             audio_encoding_enum = self._get_audio_encoding_enum(final_audio_encoding_str)
-            
+
             audio_config_params = {"audio_encoding": audio_encoding_enum}
 
             if "speaking_rate" in kwargs and kwargs["speaking_rate"] is not None:
@@ -156,7 +156,7 @@ class GoogleCloudTTS(TextToSpeechService):
                     logger.warning(f"Requested pitch {pitch} is out of range [-20.0, 20.0]. Clamping.")
                     pitch = max(-20.0, min(20.0, pitch))
                 audio_config_params["pitch"] = pitch
-            
+
             if "effects_profile_id" in kwargs and kwargs["effects_profile_id"]:
                 profile_ids = kwargs["effects_profile_id"]
                 if isinstance(profile_ids, str):
@@ -195,10 +195,10 @@ class GoogleCloudTTS(TextToSpeechService):
             return output_filename, subtitles_data
 
         except google_exceptions.GoogleAPIError as e:
-            logger.error(f"Google Cloud TTS API error: {e}")
+            logger.error(f"Google Cloud TTS API error: {e}", exc_info=True)
             raise
         except ValueError as e: # Catch local ValueErrors, e.g. from param validation
-            logger.error(f"Google Cloud TTS configuration or parameter error: {e}")
+            logger.error(f"Google Cloud TTS configuration or parameter error: {e}", exc_info=True)
             raise
         except Exception as e: # Catch any other unexpected errors
             logger.error(f"Unexpected error in GoogleCloudTTS.synthesize_speech: {e}", exc_info=True)
@@ -208,7 +208,7 @@ class GoogleCloudTTS(TextToSpeechService):
     def get_available_voices(self, **kwargs) -> List[str]:
         """
         Gets a list of available voices from Google Cloud TTS.
-        
+
         Can be filtered by language code by providing a `language_code`_ kwarg.
 
         Args:

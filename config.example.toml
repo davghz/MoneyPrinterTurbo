@@ -1,35 +1,35 @@
 [app]
 video_source = "pexels" # "pexels" or "pixabay"
 
-# 是否隐藏配置面板
+# Whether to hide the configuration panel
 hide_config = false
 
 # Pexels API Key
 # Register at https://www.pexels.com/api/ to get your API key.
 # You can use multiple keys to avoid rate limits.
 # For example: pexels_api_keys = ["123adsf4567adf89","abd1321cd13efgfdfhi"]
-# 特别注意格式，Key 用英文双引号括起来，多个Key用逗号隔开
+# Note on format: Keys should be enclosed in English double quotes, multiple keys separated by commas.
 pexels_api_keys = []
 
 # Pixabay API Key
 # Register at https://pixabay.com/api/docs/ to get your API key.
 # You can use multiple keys to avoid rate limits.
 # For example: pixabay_api_keys = ["123adsf4567adf89","abd1321cd13efgfdfhi"]
-# 特别注意格式，Key 用英文双引号括起来，多个Key用逗号隔开
+# Note on format: Keys should be enclosed in English double quotes, multiple keys separated by commas.
 pixabay_api_keys = []
 
-# 支持的提供商 (Supported providers):
+# Supported LLM providers:
 #   openai
-#   moonshot    (月之暗面)
+#   moonshot    (Moonshot AI - Kimi)
 #   azure
-#   qwen        (通义千问)
+#   qwen        (Alibaba Tongyi Qianwen)
 #   deepseek
 #   gemini
 #   ollama
 #   g4f
 #   oneapi
 #   cloudflare
-#   ernie       (文心一言)
+#   ernie       (Baidu Wenxin Yiyan)
 llm_provider = "openai"
 
 ########## Pollinations AI Settings
@@ -116,11 +116,11 @@ subtitle_provider = "edge"
 #
 # FFMPEG
 #
-# 通常情况下，ffmpeg 会被自动下载，并且会被自动检测到。
-# 但是如果你的环境有问题，无法自动下载，可能会遇到如下错误：
+# Normally, ffmpeg is automatically downloaded and detected.
+# However, if your environment has issues preventing automatic download, you might encounter errors like:
 #   RuntimeError: No ffmpeg exe could be found.
 #   Install ffmpeg on your system, or set the IMAGEIO_FFMPEG_EXE environment variable.
-# 此时你可以手动下载 ffmpeg 并设置 ffmpeg_path，下载地址：https://www.gyan.dev/ffmpeg/builds/
+# In such cases, you can manually download ffmpeg from https://www.gyan.dev/ffmpeg/builds/ and set the ffmpeg_path.
 
 # Under normal circumstances, ffmpeg is downloaded automatically and detected automatically.
 # However, if there is an issue with your environment that prevents automatic downloading, you might encounter the following error:
@@ -128,32 +128,28 @@ subtitle_provider = "edge"
 #   Install ffmpeg on your system, or set the IMAGEIO_FFMPEG_EXE environment variable.
 # In such cases, you can manually download ffmpeg and set the ffmpeg_path, download link: https://www.gyan.dev/ffmpeg/builds/
 
-# ffmpeg_path = "C:\\Users\\harry\\Downloads\\ffmpeg.exe"
+# ffmpeg_path = "C:\\Users\\harry\\Downloads\\ffmpeg.exe" # Example for Windows
 #########################################################################################
 
-# 当视频生成成功后，API服务提供的视频下载接入点，默认为当前服务的地址和监听端口
-# 比如 http://127.0.0.1:8080/tasks/6357f542-a4e1-46a1-b4c9-bf3bd0df5285/final-1.mp4
-# 如果你需要使用域名对外提供服务（一般会用nginx做代理），则可以设置为你的域名
-# 比如 https://xxxx.com/tasks/6357f542-a4e1-46a1-b4c9-bf3bd0df5285/final-1.mp4
-# endpoint="https://xxxx.com"
-
-# When the video is successfully generated, the API service provides a download endpoint for the video, defaulting to the service's current address and listening port.
-# For example, http://127.0.0.1:8080/tasks/6357f542-a4e1-46a1-b4c9-bf3bd0df5285/final-1.mp4
-# If you need to provide the service externally using a domain name (usually done with nginx as a proxy), you can set it to your domain name.
-# For example, https://xxxx.com/tasks/6357f542-a4e1-46a1-b4c9-bf3bd0df5285/final-1.mp4
+# When a video is successfully generated, the API service provides a download endpoint.
+# By default, this is the service's current address and listening port.
+# Example: http://127.0.0.1:8080/tasks/6357f542-a4e1-46a1-b4c9-bf3bd0df5285/final-1.mp4
+# If you provide the service externally using a domain name (e.g., with nginx as a proxy),
+# you can set your domain name here.
+# Example: https://xxxx.com/tasks/6357f542-a4e1-46a1-b4c9-bf3bd0df5285/final-1.mp4
 # endpoint="https://xxxx.com"
 endpoint = ""
 
 
 # Video material storage location
-# material_directory = ""                    # Indicates that video materials will be downloaded to the default folder, the default folder is ./storage/cache_videos under the current project
-# material_directory = "/user/harry/videos"  # Indicates that video materials will be downloaded to a specified folder
-# material_directory = "task"                # Indicates that video materials will be downloaded to the current task's folder, this method does not allow sharing of already downloaded video materials
+# material_directory = ""  # Default: ./storage/cache_videos under the current project
+# material_directory = "/user/harry/videos"  # Download to a specified folder
+# material_directory = "task"  # Download to the current task's folder (no sharing of materials)
 
-# 视频素材存放位置
-# material_directory = ""                    #表示将视频素材下载到默认的文件夹，默认文件夹为当前项目下的 ./storage/cache_videos
-# material_directory = "/user/harry/videos"  #表示将视频素材下载到指定的文件夹中
-# material_directory = "task"                #表示将视频素材下载到当前任务的文件夹中，这种方式无法共享已经下载的视频素材
+# Video material storage location
+# material_directory = ""  # Default: video materials will be downloaded to ./storage/cache_videos
+# material_directory = "/user/harry/videos"  # Download video materials to a specified folder
+# material_directory = "task"  # Download video materials to the current task's folder; this prevents sharing of downloaded materials.
 
 material_directory = ""
 
@@ -164,7 +160,7 @@ redis_port = 6379
 redis_db = 0
 redis_password = ""
 
-# 文生视频时的最大并发任务数
+# Maximum number of concurrent video generation tasks
 max_concurrent_tasks = 5
 
 
@@ -228,8 +224,7 @@ default_audio_encoding = "MP3"
 
 [ui]
 # UI related settings
-# 是否隐藏日志信息
-# Whether to hide logs in the UI
+# Whether to hide log messages in the UI
 hide_log = false
 
 [streaming]

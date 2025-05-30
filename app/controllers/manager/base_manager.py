@@ -2,12 +2,15 @@ import threading
 from typing import Any, Callable, Dict
 
 
+from loguru import logger # Add logger import
+
 class TaskManager:
     def __init__(self, max_concurrent_tasks: int):
         self.max_concurrent_tasks = max_concurrent_tasks
         self.current_tasks = 0
         self.lock = threading.Lock()
         self.queue = self.create_queue()
+        self.logger = logger.bind(name=self.__class__.__name__) # Initialize logger
 
     def create_queue(self):
         raise NotImplementedError()
@@ -15,11 +18,11 @@ class TaskManager:
     def add_task(self, func: Callable, *args: Any, **kwargs: Any):
         with self.lock:
             if self.current_tasks < self.max_concurrent_tasks:
-                print(f"add task: {func.__name__}, current_tasks: {self.current_tasks}")
+                self.logger.info(f"Executing task directly: {func.__name__}, current tasks: {self.current_tasks}/{self.max_concurrent_tasks}")
                 self.execute_task(func, *args, **kwargs)
             else:
-                print(
-                    f"enqueue task: {func.__name__}, current_tasks: {self.current_tasks}"
+                self.logger.info(
+                    f"Queueing task: {func.__name__}, current tasks: {self.current_tasks}/{self.max_concurrent_tasks}. Queue size: {len(self.queue) if hasattr(self.queue, '__len__') else 'N/A'}"
                 )
                 self.enqueue({"func": func, "args": args, "kwargs": kwargs})
 

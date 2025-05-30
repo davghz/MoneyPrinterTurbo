@@ -34,8 +34,8 @@ from app.services.azure_tts_adapter import AzureTTSAdapter
 from app.services.siliconflow_tts_adapter import SiliconflowTTSAdapter
 
 
-# Old TTS functions and their direct helpers (get_siliconflow_voices, get_all_azure_voices, 
-# parse_voice_name, is_azure_v2_voice, convert_rate_to_percent, azure_tts_v1, 
+# Old TTS functions and their direct helpers (get_siliconflow_voices, get_all_azure_voices,
+# parse_voice_name, is_azure_v2_voice, convert_rate_to_percent, azure_tts_v1,
 # siliconflow_tts, azure_tts_v2) have been removed as of previous refactoring steps.
 # The _is_siliconflow_voice helper specific to the old `tts` dispatcher was also removed;
 # new local helpers _is_google_voice and _is_siliconflow_voice are defined below.
@@ -54,9 +54,9 @@ def _is_siliconflow_voice(voice_name: str) -> bool:
 def tts(
     text: str,
     voice_name: str,
-    voice_rate: float, 
+    voice_rate: float,
     voice_file: str,
-    voice_volume: float = 1.0, 
+    voice_volume: float = 1.0,
 ) -> Any:
     """
     Main Text-to-Speech dispatch function.
@@ -96,11 +96,11 @@ def tts(
         Returns None if TTS synthesis fails for any reason.
     """
     logger.info(f"TTS request for voice: '{voice_name}', rate: {voice_rate}, volume: {voice_volume}")
-    
+
     adapter: TextToSpeechService
     actual_voice_id = voice_name # This might be modified if there's a prefix
     subtitle_data = None
-    
+
     kwargs_for_adapter = {}
 
     try:
@@ -113,16 +113,16 @@ def tts(
             # Google's pitch range: [-20.0, 20.0].
             # Mapping volume to pitch: (volume - 1.0) * 10.0 (e.g., vol 1.0 -> pitch 0.0)
             kwargs_for_adapter = {
-                "speaking_rate": voice_rate, 
-                "pitch": (voice_volume - 1.0) * 10.0 
+                "speaking_rate": voice_rate,
+                "pitch": (voice_volume - 1.0) * 10.0
             }
-            
+
         elif _is_siliconflow_voice(voice_name):
             logger.info("Using SiliconflowTTSAdapter.")
             adapter = SiliconflowTTSAdapter()
             # SiliconflowTTSAdapter expects `voice_rate` and `voice_volume` in kwargs.
             kwargs_for_adapter = {"voice_rate": voice_rate, "voice_volume": voice_volume}
-            
+
         else: # Default to Azure
             logger.info("Using AzureTTSAdapter.")
             adapter = AzureTTSAdapter()
@@ -132,11 +132,11 @@ def tts(
         # Synthesize speech using the chosen adapter
         _, subtitle_data = adapter.synthesize_speech(
             text=text,
-            voice_id=actual_voice_id, 
+            voice_id=actual_voice_id,
             output_filename=voice_file,
             **kwargs_for_adapter
         )
-        
+
         logger.info(f"TTS synthesis completed. Output: '{voice_file}', Subtitle data type: {type(subtitle_data)}")
 
     except Exception as e:
@@ -149,7 +149,7 @@ def tts(
                     logger.info(f"Removed empty/failed output file: '{voice_file}'")
             except OSError as rm_err:
                 logger.error(f"Error removing failed output file '{voice_file}': {rm_err}")
-        return None 
+        return None
 
     return subtitle_data
 
@@ -169,7 +169,7 @@ def _format_text(text: str) -> str:
     return text
 
 
-def create_subtitle(sub_maker: Any, text: str, subtitle_file: str): 
+def create_subtitle(sub_maker: Any, text: str, subtitle_file: str):
     """
     Generates an SRT subtitle file from subtitle data (typically a SubMaker object).
 
@@ -188,7 +188,7 @@ def create_subtitle(sub_maker: Any, text: str, subtitle_file: str):
         logger.warning(f"create_subtitle received subtitle data of type {type(sub_maker)} which is not SubMaker-like. Skipping subtitle creation.")
         return
 
-    formatted_text = _format_text(text) 
+    formatted_text = _format_text(text)
 
     # This requires mktimestamp from edge_tts.submaker
     # This import is fine here as this function is specifically for SubMaker-like objects.
@@ -218,39 +218,39 @@ def create_subtitle(sub_maker: Any, text: str, subtitle_file: str):
 
             unscaped_sub_text = unescape(sub_text_segment)
             current_raw_sub_line += unscaped_sub_text
-            
+
             matched_script_line_text = ""
             if srt_idx < len(script_lines):
                 target_script_line = script_lines[srt_idx]
-                if target_script_line in current_raw_sub_line: 
+                if target_script_line in current_raw_sub_line:
                     matched_script_line_text = target_script_line
-                elif any(p in unscaped_sub_text for p in ".!?。！？"): 
+                elif any(p in unscaped_sub_text for p in ".!?。！？"):
                      matched_script_line_text = current_raw_sub_line
-                
+
             if matched_script_line_text:
                 srt_idx += 1
                 line = srt_formatter(
                     idx=srt_idx,
                     start_time_sec=current_sub_start_time_100ns / 10_000_000.0,
-                    end_time_sec=end_100ns / 10_000_000.0,    
+                    end_time_sec=end_100ns / 10_000_000.0,
                     sub_text=matched_script_line_text.strip(),
                 )
                 srt_items.append(line)
-                current_sub_start_time_100ns = -1.0 
-                current_raw_sub_line = "" 
+                current_sub_start_time_100ns = -1.0
+                current_raw_sub_line = ""
 
         if current_raw_sub_line and srt_idx < len(script_lines) and current_sub_start_time_100ns >=0:
             srt_idx += 1
-            last_end_time_100ns = sub_maker.offset[-1][1] if sub_maker.offset else current_sub_start_time_100ns + 10_000_000 
+            last_end_time_100ns = sub_maker.offset[-1][1] if sub_maker.offset else current_sub_start_time_100ns + 10_000_000
             line = srt_formatter(
                 idx=srt_idx,
                 start_time_sec=current_sub_start_time_100ns / 10_000_000.0,
                 end_time_sec=last_end_time_100ns / 10_000_000.0,
-                sub_text=script_lines[srt_idx-1].strip() 
+                sub_text=script_lines[srt_idx-1].strip()
             )
             srt_items.append(line)
 
-        if srt_items: 
+        if srt_items:
             with open(subtitle_file, "w", encoding="utf-8") as file:
                 file.write("\n".join(srt_items) + "\n")
             try:
@@ -259,7 +259,7 @@ def create_subtitle(sub_maker: Any, text: str, subtitle_file: str):
             except Exception as e:
                 logger.error(f"Failed to validate generated subtitle file '{subtitle_file}': {str(e)}")
                 if os.path.exists(subtitle_file):
-                    os.remove(subtitle_file) 
+                    os.remove(subtitle_file)
         else:
             logger.warning(
                 f"No subtitle items generated for '{subtitle_file}'. Alignment with script lines might have failed."
@@ -365,7 +365,7 @@ if __name__ == "__main__":
                         logger.success(f"Successfully created subtitle file: {subtitle_file_path}")
                     else:
                         logger.warning(f"Subtitle file not created: {subtitle_file_path}")
-                    
+
                     audio_dur = get_audio_duration(subtitle_data)
                     logger.info(f"Estimated audio duration from subs: {audio_dur}s")
                 else: # Google timepoints or other format

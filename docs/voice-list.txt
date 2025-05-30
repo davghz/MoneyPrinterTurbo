@@ -1,3 +1,22 @@
+# Voice List
+# This file primarily contains Azure and SiliconFlow voices.
+#
+# For Azure voices (including edge-tts compatible and Azure Speech SDK V2 voices):
+# The names are listed directly, e.g., en-US-JennyNeural-Female.
+# V2 voices often include "Multilingual" and end with "-V2-Gender", e.g., en-US-AndrewMultilingualNeural-V2-Male.
+#
+# For SiliconFlow voices:
+# These are prefixed with "siliconflow:", e.g., siliconflow:FunAudioLLM/CosyVoice2-0.5B:alex-Male
+# The list here is based on the initial implementation.
+#
+# For Google Cloud Text-to-Speech voices:
+# Google Cloud offers a wide range of voices. This list does not include them.
+# To use Google Cloud voices, prefix the Google Cloud voice name with "google:", e.g., "google:en-US-Wavenet-D".
+# For a comprehensive list of available Google Cloud voices, please refer to the official Google Cloud documentation:
+# https://cloud.google.com/text-to-speech/docs/voices
+# You can also list voices via the `GoogleCloudTTS` adapter's `get_available_voices()` method,
+# potentially filtering by language code.
+
 Name: af-ZA-AdriNeural
 Gender: Female
 

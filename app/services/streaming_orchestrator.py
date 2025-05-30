@@ -3,6 +3,7 @@ This module defines the StreamingOrchestrator class, a concrete implementation
 of the StreamingService interface. It coordinates FFmpeg for streaming and
 optionally interacts with YouTube for stream status.
 """
+import os # Added import for os.environ.get
 from typing import Dict, Any, Optional
 
 from loguru import logger
@@ -41,7 +42,7 @@ except ImportError as e:
             def get_stream_status(self) -> Dict[str, Any]: pass
             @abstractmethod
             def update_configuration(self, new_config: StreamConfig) -> None: pass
-    
+
     if "FFmpegManager" not in globals():
         class FFmpegManager:
             def __init__(self, config: StreamConfig, logger_instance=None): self.logger = logger_instance or logger
@@ -75,7 +76,7 @@ class StreamingOrchestrator(StreamingService):
         super().__init__(config)
         self.logger = logger_instance or logger.bind(name=self.__class__.__name__)
         self.ffmpeg_manager: Optional[FFmpegManager] = None
-        
+
         # Initialize YouTubeManager, passing configured auth parameters
         # This assumes app_config.streaming holds these values from config.toml/env
         from app.config import config as app_global_config
@@ -101,7 +102,7 @@ class StreamingOrchestrator(StreamingService):
         else:
             self.logger.warning("Google API libraries not available. YouTubeManager will not be used.")
             self.youtube_manager = None
-        
+
         self.logger.info(f"StreamingOrchestrator initialized with config: {self.config}")
 
     def start_stream(self) -> None:
@@ -161,8 +162,8 @@ class StreamingOrchestrator(StreamingService):
             self.logger.info("FFmpeg stream stopped.")
         else:
             self.logger.info("Stream stop request: FFmpeg process was not running or manager not initialized.")
-        
-        self.ffmpeg_manager = None 
+
+        self.ffmpeg_manager = None
         self._is_active = False # Set inactive regardless of whether it was running, as stop is called
 
     def get_stream_status(self) -> Dict[str, Any]:
@@ -199,7 +200,7 @@ class StreamingOrchestrator(StreamingService):
                 # If FFmpeg is thought to be running, but YouTube says not live, update is_active
                 if status_info['ffmpeg_running'] and yt_status and not yt_status.get('is_live'):
                     self.logger.warning(f"FFmpeg reported running, but YouTube status is '{yt_status.get('raw_status')}' (not live). Orchestrator status reflects YouTube.")
-                    status_info['is_active'] = False 
+                    status_info['is_active'] = False
                 elif status_info['ffmpeg_running'] and yt_status and yt_status.get('is_live'):
                      status_info['is_active'] = True # Both agree it's active
             except Exception as e:
@@ -210,7 +211,7 @@ class StreamingOrchestrator(StreamingService):
              status_info['youtube_status'] = "Not checked (youtube_live_stream_id not configured in StreamConfig)."
         else:
             status_info['youtube_status'] = "YouTubeManager not available (Google API libs missing or init failed)."
-            
+
         self.logger.debug(f"Current stream status: {status_info}")
         return status_info
 
@@ -225,7 +226,7 @@ class StreamingOrchestrator(StreamingService):
             self.logger.info("Stream is currently active. It will be stopped and restarted to apply new configuration.")
             self.stop_stream() # This also sets self.ffmpeg_manager to None
             should_restart = True
-        
+
         super().update_configuration(new_config) # This updates self.config
 
         if should_restart:

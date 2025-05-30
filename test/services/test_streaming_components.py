@@ -26,7 +26,7 @@ class TestFFmpegManager(unittest.TestCase):
     def setUp(self):
         self.test_output_dir = "test_temp_output"
         os.makedirs(self.test_output_dir, exist_ok=True)
-        
+
         self.base_config = StreamConfig(
             stream_key="test_key",
             rtmp_url="rtmp://fake.server/live",
@@ -50,7 +50,7 @@ class TestFFmpegManager(unittest.TestCase):
     def test_build_ffmpeg_command_basic(self):
         manager = FFmpegManager(config=self.base_config)
         command = manager.build_ffmpeg_command()
-        
+
         self.assertIn("ffmpeg", command)
         self.assertIn(self.base_config.ffmpeg_input_source, command)
         self.assertIn(f"{self.base_config.rtmp_url}/{self.base_config.stream_key}", command)
@@ -75,7 +75,7 @@ class TestFFmpegManager(unittest.TestCase):
         mock_process.poll.return_value = None # Simulate running
         mock_process.pid = 12345
         mock_popen.return_value = mock_process
-        
+
         manager = FFmpegManager(config=self.base_config)
         self.assertTrue(manager.start())
         mock_popen.assert_called_once()
@@ -90,7 +90,7 @@ class TestFFmpegManager(unittest.TestCase):
         mock_process.communicate.return_value = (b"stdout error", b"stderr error")
         mock_process.returncode = 1
         mock_popen.return_value = mock_process
-        
+
         manager = FFmpegManager(config=self.base_config)
         self.assertFalse(manager.start())
         mock_popen.assert_called_once()
@@ -103,11 +103,11 @@ class TestFFmpegManager(unittest.TestCase):
         mock_process.poll.return_value = None # Simulate running
         mock_process.pid = 12345
         mock_popen.return_value = mock_process
-        
+
         manager = FFmpegManager(config=self.base_config)
         manager.start() # Starts the mocked process
         self.assertTrue(manager.is_running())
-        
+
         manager.stop()
         mock_process.terminate.assert_called_once()
         mock_process.wait.assert_called_once_with(timeout=5)
@@ -135,7 +135,7 @@ class TestYouTubeManager(unittest.TestCase):
         self.mock_build_service = patch('app.services.youtube_manager.build_google_api_service').start()
         self.mock_youtube_service_instance = MagicMock()
         self.mock_build_service.return_value = self.mock_youtube_service_instance
-        
+
         # Mock os.environ.get for GOOGLE_APPLICATION_CREDENTIALS to be initially None
         self.mock_os_environ = patch.dict(os.environ, {"GOOGLE_APPLICATION_CREDENTIALS": ""}, clear=True).start()
 
@@ -146,11 +146,11 @@ class TestYouTubeManager(unittest.TestCase):
     def test_authentication_service_account_env_var(self, mock_from_sa_file):
         mock_credentials = MagicMock()
         mock_from_sa_file.return_value = mock_credentials
-        
+
         # Simulate GOOGLE_APPLICATION_CREDENTIALS being set
         with patch.dict(os.environ, {"GOOGLE_APPLICATION_CREDENTIALS": "dummy_sa_path.json"}):
             yt_manager = YouTubeManager()
-        
+
         mock_from_sa_file.assert_called_once_with("dummy_sa_path.json", scopes=YOUTUBE_FULL_SCOPE)
         self.mock_build_service.assert_called_once_with("youtube", "v3", credentials=mock_credentials)
         self.assertEqual(yt_manager.youtube_service, self.mock_youtube_service_instance)
@@ -172,10 +172,10 @@ class TestYouTubeManager(unittest.TestCase):
         }
         mock_list_request.execute.return_value = mock_list_response
         self.mock_youtube_service_instance.liveStreams().list.return_value = mock_list_request
-        
+
         yt_manager = YouTubeManager(api_key="fake_key") # Assume auth is successful
         status = yt_manager.get_live_stream_status("test_stream_id")
-        
+
         self.assertTrue(status["is_live"])
         self.assertEqual(status["raw_status"], "active")
         self.assertEqual(status["health"], "good")
@@ -187,7 +187,7 @@ class TestYouTubeManager(unittest.TestCase):
 
         yt_manager = YouTubeManager(api_key="fake_key")
         status = yt_manager.get_live_stream_status("non_existent_id")
-        
+
         self.assertFalse(status["is_live"])
         self.assertEqual(status["raw_status"], "not_found")
 
@@ -204,7 +204,7 @@ class TestStreamingOrchestrator(unittest.TestCase):
             ffmpeg_input_source="lavfi:testsrc",
             youtube_live_stream_id="yt_stream_id_123"
         )
-        
+
         # Mock the managers that StreamingOrchestrator will instantiate
         self.ffmpeg_manager_patch = patch('app.services.streaming_orchestrator.FFmpegManager')
         self.mock_ffmpeg_manager_class = self.ffmpeg_manager_patch.start()
@@ -215,7 +215,7 @@ class TestStreamingOrchestrator(unittest.TestCase):
         self.mock_youtube_manager_class = self.youtube_manager_patch.start()
         self.mock_youtube_instance = MagicMock(spec=YouTubeManager)
         self.mock_youtube_manager_class.return_value = self.mock_youtube_instance
-        
+
         # Mock app_config for orchestrator's YouTubeManager instantiation
         self.mock_app_config_orchestrator = patch('app.services.streaming_orchestrator.app_global_config').start()
         self.mock_app_config_orchestrator.streaming = {
@@ -232,10 +232,10 @@ class TestStreamingOrchestrator(unittest.TestCase):
     def test_start_stream_success(self):
         self.mock_ffmpeg_instance.start.return_value = True
         self.mock_youtube_instance.get_live_stream_status.return_value = {"raw_status": "ready", "is_live": False}
-        
+
         orchestrator = StreamingOrchestrator(config=self.stream_config)
         orchestrator.start_stream()
-        
+
         self.mock_ffmpeg_manager_class.assert_called_once_with(config=self.stream_config, logger_instance=orchestrator.logger)
         self.mock_ffmpeg_instance.start.assert_called_once()
         self.assertTrue(orchestrator._is_active)
@@ -245,10 +245,10 @@ class TestStreamingOrchestrator(unittest.TestCase):
 
     def test_start_stream_ffmpeg_failure(self):
         self.mock_ffmpeg_instance.start.return_value = False
-        
+
         orchestrator = StreamingOrchestrator(config=self.stream_config)
         orchestrator.start_stream()
-        
+
         self.mock_ffmpeg_instance.start.assert_called_once()
         self.assertFalse(orchestrator._is_active)
 
@@ -256,11 +256,11 @@ class TestStreamingOrchestrator(unittest.TestCase):
         # Simulate stream being active
         self.mock_ffmpeg_instance.is_running.return_value = True
         self.mock_ffmpeg_instance.start.return_value = True # Ensure it can "start"
-        
+
         orchestrator = StreamingOrchestrator(config=self.stream_config)
         orchestrator.start_stream() # Sets up ffmpeg_manager instance
         orchestrator.stop_stream()
-        
+
         self.mock_ffmpeg_instance.stop.assert_called_once()
         self.assertFalse(orchestrator._is_active)
         self.assertIsNone(orchestrator.ffmpeg_manager) # Ensure manager is cleared
@@ -269,12 +269,12 @@ class TestStreamingOrchestrator(unittest.TestCase):
         self.mock_ffmpeg_instance.is_running.return_value = True
         self.mock_ffmpeg_instance.pid = 1234
         self.mock_youtube_instance.get_live_stream_status.return_value = {"raw_status": "active", "is_live": True, "health": "good"}
-        
+
         orchestrator = StreamingOrchestrator(config=self.stream_config)
         orchestrator.ffmpeg_manager = self.mock_ffmpeg_instance # Manually assign started manager
-        
+
         status = orchestrator.get_stream_status()
-        
+
         self.assertTrue(status['is_active'])
         self.assertTrue(status['ffmpeg_running'])
         self.assertEqual(status['ffmpeg_pid'], 1234)
@@ -283,7 +283,7 @@ class TestStreamingOrchestrator(unittest.TestCase):
     def test_get_stream_status_no_youtube_id(self):
         config_no_yt_id = self.stream_config._replace(youtube_live_stream_id=None)
         self.mock_ffmpeg_instance.is_running.return_value = True
-        
+
         orchestrator = StreamingOrchestrator(config=config_no_yt_id)
         orchestrator.ffmpeg_manager = self.mock_ffmpeg_instance
 
@@ -300,13 +300,13 @@ class TestStreamingOrchestrator(unittest.TestCase):
         # Simulate stream is running
         self.mock_ffmpeg_instance.is_running.return_value = True
         self.mock_ffmpeg_instance.start.return_value = True # For the restart
-        
+
         orchestrator = StreamingOrchestrator(config=self.stream_config)
         orchestrator.ffmpeg_manager = self.mock_ffmpeg_instance # Assume it's running
-        
+
         new_config = self.stream_config._replace(fps=60)
         orchestrator.update_configuration(new_config)
-        
+
         self.mock_ffmpeg_instance.stop.assert_called_once()
         # FFmpegManager should be re-instantiated, so the start call is on the new instance
         self.assertEqual(self.mock_ffmpeg_manager_class.call_count, 2) # Once in init, once in start_stream after update

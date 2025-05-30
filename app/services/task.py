@@ -332,8 +332,8 @@ def start(task_id, params: VideoParams, stop_at: str = "video"):
 if __name__ == "__main__":
     task_id = "task_id"
     params = VideoParams(
-        video_subject="金钱的作用",
-        voice_name="zh-CN-XiaoyiNeural-Female",
+        video_subject="The role of money", # Translated from "金钱的作用"
+        voice_name="zh-CN-XiaoyiNeural-Female", # This is a voice ID, not for translation
         voice_rate=1.0,
     )
     start(task_id, params, stop_at="video")

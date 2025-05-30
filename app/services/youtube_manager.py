@@ -82,7 +82,7 @@ class YouTubeManager:
             An authenticated YouTube API service object, or None if authentication fails.
         """
         credentials = None
-        
+
         # Priority 1: Explicit Service Account path from constructor
         if self.service_account_json_path:
             try:
@@ -108,7 +108,7 @@ class YouTubeManager:
                     self.logger.error(f"Service Account JSON file not found at GOOGLE_APPLICATION_CREDENTIALS path: {env_service_account_path}. Trying other methods.")
                 except Exception as e:
                     self.logger.warning(f"Failed to load Service Account credentials from GOOGLE_APPLICATION_CREDENTIALS ({env_service_account_path}): {e}. Trying other methods.")
-        
+
         # Priority 3: OAuth 2.0 credentials from constructor paths
         if not credentials and self.client_secrets_file: # client_secrets_file is mandatory for OAuth flow
             try:
@@ -132,7 +132,7 @@ class YouTubeManager:
                         except Exception as e_generic_refresh:
                             self.logger.error(f"Unexpected error during OAuth 2.0 token refresh: {e_generic_refresh}. Re-running interactive flow if possible.")
                             credentials = None
-                             
+
                     if not credentials: # If still no valid credentials, try the interactive flow
                         self.logger.info(f"Performing OAuth 2.0 interactive flow using client secrets: {self.client_secrets_file}.")
                         flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
@@ -140,8 +140,8 @@ class YouTubeManager:
                         )
                         # This is interactive. For servers, pre-authorize and store credentials_file.
                         # Consider adding a timeout or specific instructions for headless environments.
-                        credentials = flow.run_local_server(port=0) 
-                    
+                        credentials = flow.run_local_server(port=0)
+
                     if self.credentials_file: # Save/update credentials if a path is provided
                         with open(self.credentials_file, "w") as f:
                             f.write(credentials.to_json())
@@ -161,7 +161,7 @@ class YouTubeManager:
             except Exception as e: # Catch errors during service build
                 self.logger.error(f"Failed to build YouTube service with obtained credentials: {e}", exc_info=True)
                 # Fall through to try API key if building with credentials failed
-        
+
         # Priority 4: API Key from constructor
         if self.api_key:
             try:
@@ -170,7 +170,7 @@ class YouTubeManager:
             except Exception as e:
                 self.logger.error(f"Failed to build YouTube service with API Key: {e}", exc_info=True)
                 return None
-        
+
         if not credentials and not self.api_key: # If no credentials and no API key was provided or all attempts failed
             self.logger.error("No valid authentication method provided or all authentication attempts failed.")
         elif not credentials and self.api_key: # If API key was provided but service build failed above
@@ -248,7 +248,7 @@ class YouTubeManager:
         if not self.youtube_service:
             self.logger.error("YouTube service not authenticated.")
             return False
-        
+
         if self.api_key and not (hasattr(self.youtube_service, '_http') and hasattr(self.youtube_service._http, 'credentials')): # Heuristic to check if not API key auth
              self.logger.warning("Verifying stream key requires OAuth 2.0 or Service Account. API Key auth is insufficient.")
              raise NotImplementedError("Stream key verification is not supported with API Key authentication.")
@@ -273,7 +273,7 @@ class YouTubeManager:
                             self.logger.warning(f"Stream key '{stream_key}' found, but RTMP URL mismatch. Expected '{expected_rtmp_url}', got '{ingestion_address}'")
                             return False
                     return True
-            
+
             self.logger.warning(f"No live stream found matching stream key: {stream_key}")
             return False
 
@@ -297,7 +297,7 @@ if __name__ == "__main__":
     # 3. Have client_secret.json and a pre-authorized credentials.json for OAuth.
 
     # Test with API Key (replace with your actual API key)
-    # api_key_test = "YOUR_API_KEY" 
+    # api_key_test = "YOUR_API_KEY"
     # if api_key_test == "YOUR_API_KEY":
     #     logger.warning("API Key not set for __main__ test. Skipping API key test.")
     # else:
@@ -330,7 +330,7 @@ if __name__ == "__main__":
             else:
                 status = yt_manager_sa.get_live_stream_status(test_stream_id)
                 logger.info(f"Service Account Test - Stream status for '{test_stream_id}': {status}")
-            
+
             # Test verify_stream_key (replace with a key from your account)
             # test_stream_key_to_verify = "YOUR_STREAM_KEY"
             # if test_stream_key_to_verify == "YOUR_STREAM_KEY":
@@ -346,7 +346,7 @@ if __name__ == "__main__":
     # OAuth 2.0 flow test (requires client_secret.json and interactive auth first time)
     # logger.info("\nTesting with OAuth 2.0 (if client_secrets.json exists)...")
     # client_secrets_path = "client_secret.json" # Path to your client_secret.json
-    # credentials_store_path = "youtube_credentials.json" 
+    # credentials_store_path = "youtube_credentials.json"
     # if os.path.exists(client_secrets_path):
     #     yt_manager_oauth = YouTubeManager(client_secrets_file=client_secrets_path, credentials_file=credentials_store_path)
     #     if yt_manager_oauth.youtube_service:
@@ -364,6 +364,6 @@ if __name__ == "__main__":
     #         logger.error("OAuth Test - Failed to initialize YouTube service.")
     # else:
     #     logger.warning(f"OAuth Test - {client_secrets_path} not found. Skipping OAuth 2.0 test.")
-    
+
     logger.info("YouTubeManager tests finished.")
 ```

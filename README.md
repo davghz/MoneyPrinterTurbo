@@ -8,80 +8,81 @@
   <a href="https://github.com/harry0703/MoneyPrinterTurbo/blob/main/LICENSE"><img src="https://img.shields.io/github/license/harry0703/MoneyPrinterTurbo.svg?style=for-the-badge" alt="License"></a>
 </p>
 <br>
-<h3>简体中文 | <a href="README-en.md">English</a></h3>
+<!-- Remove the Chinese language switch, as this will be the English README -->
+<!-- <h3>简体中文 | <a href="README-en.md">English</a></h3> -->
 <div align="center">
   <a href="https://trendshift.io/repositories/8731" target="_blank"><img src="https://trendshift.io/api/badge/repositories/8731" alt="harry0703%2FMoneyPrinterTurbo | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
 </div>
 <br>
-只需提供一个视频 <b>主题</b> 或 <b>关键词</b> ，就可以全自动生成视频文案、视频素材、视频字幕、视频背景音乐，然后合成一个高清的短视频。
+Just provide a video <b>theme</b> or <b>keywords</b>, and it will automatically generate the video script, video materials, subtitles, and background music, then synthesize a high-definition short video.
 <br>
 
-<h4>Web界面</h4>
+<h4>Web Interface</h4>
 
 ![](docs/webui.jpg)
 
-<h4>API界面</h4>
+<h4>API Interface</h4>
 
 ![](docs/api.jpg)
 
 </div>
 
-## 特别感谢 🙏
+## Special Thanks 🙏
 
-由于该项目的 **部署** 和 **使用**，对于一些小白用户来说，还是 **有一定的门槛**，在此特别感谢
-**录咖（AI智能 多媒体服务平台）** 网站基于该项目，提供的免费`AI视频生成器`服务，可以不用部署，直接在线使用，非常方便。
+Due to the **deployment** and **usage** of this project presenting **certain challenges** for some novice users, special thanks go to
+the **RecCloud (AI-powered Multimedia Service Platform)** website for providing a free `AI Video Generator` service based on this project. It allows direct online use without needing local deployment, which is very convenient.
 
-- 中文版：https://reccloud.cn
-- 英文版：https://reccloud.com
+- Chinese Version: https://reccloud.cn
+- English Version: https://reccloud.com
 
 ![](docs/reccloud.cn.jpg)
 
-## 感谢赞助 🙏
+## Sponsorship Thanks 🙏
 
-感谢佐糖 https://picwish.cn 对该项目的支持和赞助，使得该项目能够持续的更新和维护。
+Thanks to PicWish https://picwish.com for their support and sponsorship of this project, enabling its continuous updates and maintenance.
 
-佐糖专注于**图像处理领域**，提供丰富的**图像处理工具**，将复杂操作极致简化，真正实现让图像处理更简单。
+PicWish focuses on the **image processing field**, offering a rich set of **image processing tools** that simplify complex operations, truly making image processing easier.
 
 ![picwish.jpg](docs/picwish.jpg)
 
-## 功能特性 🎯
+## Features 🎯
 
-- [x] 完整的 **MVC架构**，代码 **结构清晰**，易于维护，支持 `API` 和 `Web界面`
-- [x] 支持视频文案 **AI自动生成**，也可以**自定义文案**
-- [x] 支持多种 **高清视频** 尺寸
-    - [x] 竖屏 9:16，`1080x1920`
-    - [x] 横屏 16:9，`1920x1080`
-- [x] 支持 **批量视频生成**，可以一次生成多个视频，然后选择一个最满意的
-- [x] 支持 **视频片段时长** 设置，方便调节素材切换频率
-- [x] 支持 **中文** 和 **英文** 视频文案
-- [x] 支持 **多种语音** 合成，可 **实时试听** 效果
-- [x] 支持 **字幕生成**，可以调整 `字体`、`位置`、`颜色`、`大小`，同时支持`字幕描边`设置
-- [x] 支持 **背景音乐**，随机或者指定音乐文件，可设置`背景音乐音量`
-- [x] 视频素材来源 **高清**，而且 **无版权**，也可以使用自己的 **本地素材**
-- [x] 支持 **OpenAI**、**Moonshot**、**Azure**、**gpt4free**、**one-api**、**通义千问**、**Google Gemini**、**Ollama**、**DeepSeek**、 **文心一言**, **Pollinations** 等多种模型接入
-    - 中国用户建议使用 **DeepSeek** 或 **Moonshot** 作为大模型提供商（国内可直接访问，不需要VPN。注册就送额度，基本够用）
-- [x] 支持 **Azure TTS**、**Google Cloud TTS**、**SiliconFlow TTS** (通过 `edge-tts` 继承的 Azure 功能及新的 Google Cloud 和 SiliconFlow 适配器)
+- [x] Complete **MVC architecture**, code is **clearly structured**, easy to maintain, and supports both `API` and `Web Interface`.
+- [x] Supports **AI automatic generation** of video scripts, and also allows for **custom scripts**.
+- [x] Supports multiple **HD video** dimensions:
+    - [x] Portrait 9:16, `1080x1920`
+    - [x] Landscape 16:9, `1920x1080`
+- [x] Supports **batch video generation**, allowing multiple videos to be generated at once, so you can choose the most satisfactory one.
+- [x] Supports setting **video clip duration**, making it easy to adjust the frequency of material switching.
+- [x] Supports **Chinese** and **English** video scripts.
+- [x] Supports **multiple voice synthesis** options, with **real-time previews**.
+- [x] Supports **subtitle generation**, with adjustable `font`, `position`, `color`, `size`, and `outline` settings.
+- [x] Supports **background music**, either random or from a specified file, with adjustable `background music volume`.
+- [x] Video materials are sourced from **HD, royalty-free** stock, and you can also use your own **local materials**.
+- [x] Supports multiple LLM providers including **OpenAI**, **Moonshot**, **Azure**, **gpt4free**, **one-api**, **Qwen (Alibaba Tongyi Qianwen)**, **Google Gemini**, **Ollama**, **DeepSeek**, **Ernie (Baidu Wenxin Yiyan)**, and **Pollinations**.
+    - For users in China, **DeepSeek** or **Moonshot** are recommended as LLM providers (directly accessible in China, no VPN needed; registration provides free credits, generally sufficient for use).
+- [x] Supports **Azure TTS**, **Google Cloud TTS**, **SiliconFlow TTS** (leveraging Azure features via `edge-tts` and new adapters for Google Cloud and SiliconFlow).
 
-### 后期计划 📅
+### Future Plans 📅
 
-- [ ] GPT-SoVITS 配音支持
-- [ ] 优化语音合成，利用大模型，使其合成的声音，更加自然，情绪更加丰富
-- [ ] 增加视频转场效果，使其看起来更加的流畅
-- [ ] 增加更多视频素材来源，优化视频素材和文案的匹配度
-- [ ] 增加视频长度选项：短、中、长
-- [ ] 支持更多的语音合成服务商，比如 OpenAI TTS
-- [ ] 自动上传到YouTube平台
+- [ ] GPT-SoVITS voice cloning support.
+- [ ] Optimize voice synthesis using large models to make synthesized voices more natural and emotionally rich.
+- [ ] Add video transition effects to make videos appear smoother.
+- [ ] Increase video material sources and optimize the relevance between video materials and scripts.
+- [ ] Add video length options: short, medium, long.
+- [ ] Support more voice synthesis providers, such as OpenAI TTS.
+- [ ] Automatic upload to YouTube platform.
 
-## 视频演示 📺
+## Video Demos 📺
 
-### 竖屏 9:16
+### Portrait 9:16
 
 <table>
 <thead>
 <tr>
-<th align="center"><g-emoji class="g-emoji" alias="arrow_forward">▶️</g-emoji> 《如何增加生活的乐趣》</th>
-<th align="center"><g-emoji class="g-emoji" alias="arrow_forward">▶️</g-emoji> 《金钱的作用》<br>更真实的合成声音</th>
-<th align="center"><g-emoji class="g-emoji" alias="arrow_forward">▶️</g-emoji> 《生命的意义是什么》</th>
+<th align="center"><g-emoji class="g-emoji" alias="arrow_forward">▶️</g-emoji> "How to Add Joy to Life"</th>
+<th align="center"><g-emoji class="g-emoji" alias="arrow_forward">▶️</g-emoji> "The Role of Money"<br>More realistic synthesized voice</th>
+<th align="center"><g-emoji class="g-emoji" alias="arrow_forward">▶️</g-emoji> "What is the Meaning of Life"</th>
 </tr>
 </thead>
 <tbody>
@@ -93,13 +94,13 @@
 </tbody>
 </table>
 
-### 横屏 16:9
+### Landscape 16:9
 
 <table>
 <thead>
 <tr>
-<th align="center"><g-emoji class="g-emoji" alias="arrow_forward">▶️</g-emoji>《生命的意义是什么》</th>
-<th align="center"><g-emoji class="g-emoji" alias="arrow_forward">▶️</g-emoji>《为什么要运动》</th>
+<th align="center"><g-emoji class="g-emoji" alias="arrow_forward">▶️</g-emoji> "What is the Meaning of Life"</th>
+<th align="center"><g-emoji class="g-emoji" alias="arrow_forward">▶️</g-emoji> "Why Exercise"</th>
 </tr>
 </thead>
 <tbody>
@@ -110,86 +111,82 @@
 </tbody>
 </table>
 
-## 配置要求 📦
+## System Requirements 📦
 
-- 建议最低 CPU **4核** 或以上，内存 **4G** 或以上，显卡非必须
-- Windows 10 或 MacOS 11.0 以上系统
+- Recommended minimum CPU: **4 cores** or more, Memory: **4GB** or more. A dedicated graphics card is not mandatory.
+- Windows 10, MacOS 11.0, or newer operating systems.
 
+## Quick Start 🚀
 
-## 快速开始 🚀
-
-### 在 Google Colab 中运行
-免去本地环境配置，点击直接在 Google Colab 中快速体验 MoneyPrinterTurbo
+### Run in Google Colab
+Avoid local environment configuration; click to quickly experience MoneyPrinterTurbo directly in Google Colab.
 
 [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/harry0703/MoneyPrinterTurbo/blob/main/docs/MoneyPrinterTurbo.ipynb)
 
+### Windows One-Click Installer
 
-### Windows一键启动包
+Download the one-click installer package, unzip, and use directly (ensure the path does not contain **Chinese characters**, **special symbols**, or **spaces**).
 
-下载一键启动包，解压直接使用（路径不要有 **中文**、**特殊字符**、**空格**）
-
-- 百度网盘（v1.2.6）: https://pan.baidu.com/s/1wg0UaIyXpO3SqIpaq790SQ?pwd=sbqx 提取码: sbqx
+- Baidu Netdisk (v1.2.6): https://pan.baidu.com/s/1wg0UaIyXpO3SqIpaq790SQ?pwd=sbqx Access Code: sbqx
 - Google Drive (v1.2.6): https://drive.google.com/file/d/1HsbzfT7XunkrCrHw5ncUjFX8XX4zAuUh/view?usp=sharing
 
-下载后，建议先**双击执行** `update.bat` 更新到**最新代码**，然后双击 `start.bat` 启动
+After downloading, it is recommended to first **double-click** `update.bat` to update to the **latest code**, then double-click `start.bat` to launch.
 
-启动后，会自动打开浏览器（如果打开是空白，建议换成 **Chrome** 或者 **Edge** 打开）
+After starting, it will automatically open your browser (if it opens to a blank page, try using **Chrome** or **Edge**).
 
-## 安装部署 📥
+## Installation and Deployment 📥
 
-### 前提条件
+### Prerequisites
 
-- 尽量不要使用 **中文路径**，避免出现一些无法预料的问题
-- 请确保你的 **网络** 是正常的，VPN需要打开`全局流量`模式
+- Avoid using **non-English characters in paths** to prevent unforeseen issues.
+- Ensure your **network connection** is stable; VPNs should be set to `global traffic` mode if used.
 
-#### ① 克隆代码
+#### ① Clone the Code
 
 ```shell
 git clone https://github.com/harry0703/MoneyPrinterTurbo.git
 ```
 
-#### ② 修改配置文件（可选，建议启动后也可以在 WebUI 里面配置）
+#### ② Modify Configuration File (Optional, can also be configured in the WebUI after startup)
 
-- 将 `config.example.toml` 文件复制一份，命名为 `config.toml`
-- 按照 `config.toml` 文件中的说明，配置好 `pexels_api_keys` 和 `llm_provider`，并根据 llm_provider 对应的服务商，配置相关的
-  API Key
+- Copy `config.example.toml` and rename it to `config.toml`.
+- Following the instructions in `config.toml`, configure `pexels_api_keys` and `llm_provider`, and set up the relevant API keys for the chosen LLM provider.
 
-### Docker部署 🐳
+### Docker Deployment 🐳
 
-#### ① 启动Docker
+#### ① Start Docker
 
-如果未安装 Docker，请先安装 https://www.docker.com/products/docker-desktop/
+If Docker is not installed, please install it first: https://www.docker.com/products/docker-desktop/
 
-如果是Windows系统，请参考微软的文档：
-
-1. https://learn.microsoft.com/zh-cn/windows/wsl/install
-2. https://learn.microsoft.com/zh-cn/windows/wsl/tutorials/wsl-containers
+For Windows systems, refer to Microsoft's documentation:
+1. https://learn.microsoft.com/en-us/windows/wsl/install
+2. https://learn.microsoft.com/en-us/windows/wsl/tutorials/wsl-containers
 
 ```shell
 cd MoneyPrinterTurbo
 docker-compose up
 ```
 
-> 注意：最新版的docker安装时会自动以插件的形式安装docker compose，启动命令调整为docker compose up
+> Note: The latest versions of Docker install Docker Compose as a plugin. The command is now `docker compose up`.
 
-#### ② 访问Web界面
+#### ② Access Web Interface
 
-打开浏览器，访问 http://0.0.0.0:8501
+Open your browser and navigate to http://0.0.0.0:8501
 
-#### ③ 访问API文档
+#### ③ Access API Documentation
 
-打开浏览器，访问 http://0.0.0.0:8080/docs 或者 http://0.0.0.0:8080/redoc
+Open your browser and navigate to http://0.0.0.0:8080/docs or http://0.0.0.0:8080/redoc
 
-### 手动部署 📦
+### Manual Deployment 📦
 
-> 视频教程
+> Video Tutorials (in Chinese)
 
-- 完整的使用演示：https://v.douyin.com/iFhnwsKY/
-- 如何在Windows上部署：https://v.douyin.com/iFyjoW3M
+- Full usage demonstration: https://v.douyin.com/iFhnwsKY/
+- How to deploy on Windows: https://v.douyin.com/iFyjoW3M
 
-#### ① 创建虚拟环境
+#### ① Create a Virtual Environment
 
-建议使用 [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) 创建 python 虚拟环境
+It is recommended to use [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html) to create a Python virtual environment.
 
 ```shell
 git clone https://github.com/harry0703/MoneyPrinterTurbo.git
@@ -199,30 +196,28 @@ conda activate MoneyPrinterTurbo
 pip install -r requirements.txt
 ```
 
-#### ② 安装好 ImageMagick
+#### ② Install ImageMagick
 
 - Windows:
-    - 下载 https://imagemagick.org/script/download.php 选择Windows版本，切记一定要选择 **静态库** 版本，比如
-      ImageMagick-7.1.1-32-Q16-x64-**static**.exe
-    - 安装下载好的 ImageMagick，**注意不要修改安装路径**
-    - 修改 `配置文件 config.toml` 中的 `imagemagick_path` 为你的 **实际安装路径**
-
+    - Download from https://imagemagick.org/script/download.php. Choose the Windows version, and make sure to select a **static** library version, e.g., ImageMagick-7.1.1-32-Q16-x64-**static**.exe.
+    - Install the downloaded ImageMagick. **Do not modify the default installation path.**
+    - Modify `imagemagick_path` in your `config.toml` file to your **actual installation path**.
 - MacOS:
   ```shell
   brew install imagemagick
-  ````
-- Ubuntu
+  ```
+- Ubuntu:
   ```shell
   sudo apt-get install imagemagick
   ```
-- CentOS
+- CentOS:
   ```shell
   sudo yum install ImageMagick
   ```
 
-#### ③ 启动Web界面 🌐
+#### ③ Start Web Interface 🌐
 
-注意需要到 MoneyPrinterTurbo 项目 `根目录` 下执行以下命令
+Ensure you are in the MoneyPrinterTurbo project `root directory` when executing these commands.
 
 ###### Windows
 
@@ -236,58 +231,110 @@ webui.bat
 sh webui.sh
 ```
 
-启动后，会自动打开浏览器（如果打开是空白，建议换成 **Chrome** 或者 **Edge** 打开）
+After starting, it will automatically open your browser (if it opens to a blank page, try using **Chrome** or **Edge**).
 
-#### ④ 启动API服务 🚀
+#### ④ Start API Service 🚀
 
 ```shell
 python main.py
 ```
 
-启动后，可以查看 `API文档` http://127.0.0.1:8080/docs 或者 http://127.0.0.1:8080/redoc 直接在线调试接口，快速体验。
+After starting, you can view the `API documentation` at http://127.0.0.1:8080/docs or http://127.0.0.1:8080/redoc to debug interfaces online and quickly experience the service.
 
-## 语音合成 🗣
+## Speech Synthesis 🗣
 
-项目支持多种语音合成服务：
+The project supports multiple speech synthesis services:
 
-- **Azure TTS**: 包括通过 `edge-tts` (V1 voices) 和 Azure Cognitive Services Speech SDK (V2 voices) 支持的语音。V2 语音通常质量更高，需要配置 Azure Speech Key 和 Region。
-- **Google Cloud TTS**: 新增支持谷歌云文本转语音服务。需要进行认证配置（通过服务账户JSON文件或ADC）。
-- **SiliconFlow TTS**: 支持硅基流动 TTS 服务，需要配置 API Key。
+- **Azure TTS**: Includes voices supported via `edge-tts` (V1 voices) and Azure Cognitive Services Speech SDK (V2 voices). V2 voices generally offer higher quality and require configuration of an Azure Speech Key and Region.
+- **Google Cloud TTS**: Support for Google Cloud Text-to-Speech service. Requires authentication configuration (via a service account JSON file or Application Default Credentials).
+- **SiliconFlow TTS**: Support for SiliconFlow TTS service, requiring an API Key.
 
-**声音选择约定**:
-- **Azure**: 直接使用 Azure 的语音名称，例如 `zh-CN-XiaoyiNeural-Female` 或 `en-US-AndrewMultilingualNeural-V2-Male`。
-- **Google Cloud TTS**: 使用 `google:` 前缀，后跟 Google Cloud 的 voice ID，例如 `google:en-US-Wavenet-D`。
-- **SiliconFlow TTS**: 使用 `siliconflow:` 前缀，后跟 SiliconFlow 的 voice ID，例如 `siliconflow:FunAudioLLM/CosyVoice2-0.5B:alex-Male`。
+**Voice Selection Convention**:
+- **Azure**: Use Azure's voice name directly, e.g., `zh-CN-XiaoyiNeural-Female` or `en-US-AndrewMultilingualNeural-V2-Male`.
+- **Google Cloud TTS**: Prefix the Google Cloud voice ID with `google:`, e.g., `google:en-US-Wavenet-D`.
+- **SiliconFlow TTS**: Prefix the SiliconFlow voice ID with `siliconflow:`, e.g., `siliconflow:FunAudioLLM/CosyVoice2-0.5B:alex-Male`.
 
-所有 Azure 和部分 SiliconFlow 声音列表，可以查看：[声音列表](./docs/voice-list.txt)。对于 Google Cloud TTS 的全部可用声音，请参考其官方文档，或通过 API 查询（未来可能在 UI 中集成）。
+A list of supported Azure and some SiliconFlow voices can be found in: [Voice List](./docs/voice-list.txt). For a comprehensive list of available Google Cloud TTS voices, please refer to the official Google Cloud documentation or query via the API (which may be integrated into the UI in the future).
 
-请在 `config.toml` 文件中配置相应服务商的 API Key 和其他必要参数，具体参考 `config.example.toml`。
+Please configure the API keys and other necessary parameters for the respective service providers in your `config.toml` file, referring to `config.example.toml` for details.
 
-## 字幕生成 📜
+## Streaming Management
 
-当前支持2种字幕生成方式：
+The system now includes capabilities for live streaming to platforms like YouTube Live and Google Cloud Media CDN.
 
-- **edge**: 生成`速度快`，性能更好，对电脑配置没有要求，但是质量可能不稳定
-- **whisper**: 生成`速度慢`，性能较差，对电脑配置有一定要求，但是`质量更可靠`。
+### Overview
+This feature allows the application to take an input video source (e.g., a generated video, a screen capture, or a test pattern) and stream it live to a configured RTMP endpoint. It uses FFmpeg for the actual streaming and can interact with YouTube's API for stream status monitoring.
 
-可以修改 `config.toml` 配置文件中的 `subtitle_provider` 进行切换
+### Key Components
+*   **`StreamingOrchestrator`**: The main service class (`app.services.streaming_orchestrator.StreamingOrchestrator`) that manages the overall streaming lifecycle. It uses `FFmpegManager` for video processing and `YouTubeManager` for platform interactions.
+*   **`FFmpegManager`**: A utility class (`app.services.ffmpeg_manager.FFmpegManager`) responsible for building and managing FFmpeg commands and processes.
+*   **`YouTubeManager`**: A class (`app.services.youtube_manager.YouTubeManager`) for interacting with the YouTube Data API v3, primarily for fetching live stream status and potentially verifying stream keys.
+*   **`StreamConfig`**: A data structure (`app.services.streaming_interface.StreamConfig`) that holds all necessary configuration for a single stream, such as RTMP URL, stream key, video/audio settings, and the FFmpeg input source.
 
-建议使用 `edge` 模式，如果生成的字幕质量不好，再切换到 `whisper` 模式
+### Setup and Configuration
+Proper setup is crucial for the streaming functionality.
 
-> 注意：
+1.  **Configuration File**: All streaming-related settings are centralized under the `[streaming]` section in your `config.toml` file. Refer to `config.example.toml` for a detailed list of options and their descriptions.
 
-1. whisper 模式下需要到 HuggingFace 下载一个模型文件，大约 3GB 左右，请确保网络通畅
-2. 如果留空，表示不生成字幕。
+2.  **Google Cloud Project**:
+    *   Ensure you have a Google Cloud Project set up.
+    *   Enable the **YouTube Data API v3**.
+    *   If using Google Cloud Media CDN, set it up as per the [Google Cloud Media CDN Setup Guide](./docs/google_cloud_media_cdn_setup.md).
 
-> 由于国内无法访问 HuggingFace，可以使用以下方法下载 `whisper-large-v3` 的模型文件
+3.  **Authentication (for YouTubeManager)**:
+    *   **Service Account (Recommended for backend)**: Create a service account in your GCP project, grant it appropriate roles (e.g., "YouTube API Services Viewer" or roles with live streaming permissions if managing streams), and download its JSON key file. Set the `GOOGLE_APPLICATION_CREDENTIALS` environment variable to the path of this file, or specify the path in `config.toml` (`streaming.youtube_service_account_json_path`).
+    *   **OAuth 2.0 (for user-based actions)**: If you need the application to act on behalf of a specific YouTube user (e.g., to manage their streams), you'll need to perform an OAuth 2.0 flow. Configure `youtube_client_secrets_file` (path to your `client_secret.json`) and `youtube_credentials_file` (path to store the obtained tokens) in `config.toml`. The first run might require interactive authorization.
+    *   **API Key (Limited)**: A YouTube Data API v3 key (`youtube_api_key` in config) can be used for some read-only operations but is not sufficient for managing or verifying user-specific live streams.
 
-下载地址：
+4.  **Media CDN**:
+    *   Follow the [Google Cloud Media CDN Setup Guide](./docs/google_cloud_media_cdn_setup.md) to manually configure your live input endpoint on Media CDN.
+    *   Obtain the **RTMP Ingest URL** and **Stream Key** from your Media CDN input configuration.
+    *   Set these in `config.toml` under `streaming.media_cdn_rtmp_url` and `streaming.media_cdn_stream_key`.
 
-- 百度网盘: https://pan.baidu.com/s/11h3Q6tsDtjQKTjUu3sc5cA?pwd=xjs9
-- 夸克网盘：https://pan.quark.cn/s/3ee3d991d64b
+5.  **Key Configuration Parameters & Environment Variables**:
+    *   `YOUTUBE_LIVE_STREAM_ID` (or `streaming.youtube_live_stream_id` in config): The specific YouTube Live Stream ID to monitor.
+    *   `MEDIA_CDN_RTMP_URL` (or `streaming.media_cdn_rtmp_url`): The RTMP server URL.
+    *   `MEDIA_CDN_STREAM_KEY` (or `streaming.media_cdn_stream_key`): The stream key for the RTMP server.
+    *   Other defaults like resolution, FPS, bitrates, and FFmpeg input source are also configurable in `config.toml` or via corresponding environment variables.
 
-模型下载后解压，整个目录放到 `.\MoneyPrinterTurbo\models` 里面，
-最终的文件路径应该是这样: `.\MoneyPrinterTurbo\models\whisper-large-v3`
+### FFmpeg
+*   FFmpeg is required for video processing and streaming. Ensure it is installed on the system where the application runs.
+*   The path to the FFmpeg executable can be specified in `config.toml` (`streaming.ffmpeg_path`) or via the `FFMPEG_PATH` environment variable if it's not in the system's default PATH.
+
+### Conceptual Usage
+While the exact method of triggering streams will depend on the application's API or UI (not covered here), the conceptual flow is:
+1.  Load or define a `StreamConfig` object with all necessary parameters (RTMP URL, stream key, video settings, input source).
+2.  Instantiate the `StreamingOrchestrator` with this `StreamConfig`.
+3.  Call `orchestrator.start_stream()` to begin streaming.
+4.  Use `orchestrator.get_stream_status()` to monitor.
+5.  Call `orchestrator.stop_stream()` to end the stream.
+6.  Configuration can be updated using `orchestrator.update_configuration(new_config)`, which will typically restart an active stream.
+
+## Subtitle Generation 📜
+
+Currently, two methods for subtitle generation are supported:
+
+- **edge**: Generates `quickly`, performs better, and has no specific requirements for computer configuration, but quality may be unstable.
+- **whisper**: Generates `slowly`, performs worse, has certain requirements for computer configuration, but `quality is more reliable`.
+
+You can switch between these by modifying `subtitle_provider` in the `config.toml` file.
+
+It is recommended to use the `edge` mode. If the generated subtitle quality is poor, then switch to `whisper` mode.
+
+> Note:
+
+1. In whisper mode, a model file of about 3GB needs to be downloaded from HuggingFace. Please ensure your network is stable.
+2. If left blank, subtitles will not be generated.
+
+> As HuggingFace might be inaccessible in some regions, you can use the following methods to download the `whisper-large-v3` model file:
+
+Download links:
+
+- Baidu Netdisk: https://pan.baidu.com/s/11h3Q6tsDtjQKTjUu3sc5cA?pwd=xjs9
+- Kuake Netdisk: https://pan.quark.cn/s/3ee3d991d64b
+
+After downloading and unzipping the model, place the entire directory into `.\MoneyPrinterTurbo\models`.
+The final file path should look like this: `.\MoneyPrinterTurbo\models\whisper-large-v3`
 
 ```
 MoneyPrinterTurbo  
@@ -300,80 +347,75 @@ MoneyPrinterTurbo
   │          vocabulary.json
 ```
 
-## 背景音乐 🎵
+## Background Music 🎵
 
-用于视频的背景音乐，位于项目的 `resource/songs` 目录下。
-> 当前项目里面放了一些默认的音乐，来自于 YouTube 视频，如有侵权，请删除。
+Background music for videos is located in the project's `resource/songs` directory.
+> The project currently includes some default music sourced from YouTube videos. If there are any copyright infringements, please delete them.
 
-## 字幕字体 🅰
+## Subtitle Fonts 🅰
 
-用于视频字幕的渲染，位于项目的 `resource/fonts` 目录下，你也可以放进去自己的字体。
+Fonts for rendering video subtitles are located in the project's `resource/fonts` directory. You can also add your own fonts here.
 
-## 常见问题 🤔
+## Common Issues 🤔
 
 ### ❓RuntimeError: No ffmpeg exe could be found
 
-通常情况下，ffmpeg 会被自动下载，并且会被自动检测到。
-但是如果你的环境有问题，无法自动下载，可能会遇到如下错误：
+Normally, ffmpeg is downloaded and detected automatically.
+However, if there's an issue with your environment that prevents automatic download, you might encounter this error:
 
 ```
 RuntimeError: No ffmpeg exe could be found.
 Install ffmpeg on your system, or set the IMAGEIO_FFMPEG_EXE environment variable.
 ```
 
-此时你可以从 https://www.gyan.dev/ffmpeg/builds/ 下载ffmpeg，解压后，设置 `ffmpeg_path` 为你的实际安装路径即可。
+In this case, you can download ffmpeg from https://www.gyan.dev/ffmpeg/builds/, unzip it, and set `ffmpeg_path` in your `config.toml` to the actual path of the executable.
 
 ```toml
 [app]
-# 请根据你的实际路径设置，注意 Windows 路径分隔符为 \\
-ffmpeg_path = "C:\\Users\\harry\\Downloads\\ffmpeg.exe"
+# Please set according to your actual path. Note that Windows path separators are \\
+ffmpeg_path = "C:\\Users\\yourname\\Downloads\\ffmpeg.exe"
 ```
+(The `ffmpeg_path` is now under `[streaming]` section in `config.toml` as `streaming.ffmpeg_path`)
 
-### ❓ImageMagick的安全策略阻止了与临时文件@/tmp/tmpur5hyyto.txt相关的操作
 
-可以在ImageMagick的配置文件policy.xml中找到这些策略。
-这个文件通常位于 /etc/ImageMagick-`X`/ 或 ImageMagick 安装目录的类似位置。
-修改包含`pattern="@"`的条目，将`rights="none"`更改为`rights="read|write"`以允许对文件的读写操作。
+### ❓ImageMagick security policy prevents operations with temporary files like @/tmp/tmpur5hyyto.txt
+
+These policies can be found in ImageMagick's `policy.xml` configuration file.
+This file is usually located in `/etc/ImageMagick-X/` or a similar location in your ImageMagick installation directory.
+Modify the entry containing `pattern="@"` by changing `rights="none"` to `rights="read|write"` to allow read and write operations for files.
 
 ### ❓OSError: [Errno 24] Too many open files
 
-这个问题是由于系统打开文件数限制导致的，可以通过修改系统的文件打开数限制来解决。
+This issue is caused by system limits on the number of open files. It can be resolved by increasing this limit.
 
-查看当前限制
-
+Check the current limit:
 ```shell
 ulimit -n
 ```
 
-如果过低，可以调高一些，比如
-
+If it's too low, you can increase it, for example:
 ```shell
 ulimit -n 10240
 ```
 
-### ❓Whisper 模型下载失败，出现如下错误
+### ❓Whisper model download fails with errors like:
 
-LocalEntryNotfoundEror: Cannot find an appropriate cached snapshotfolderfor the specified revision on the local disk and
-outgoing trafic has been disabled.
-To enablerepo look-ups and downloads online, pass 'local files only=False' as input.
+`LocalEntryNotfoundEror: Cannot find an appropriate cached snapshotfolderfor the specified revision on the local disk and outgoing trafic has been disabled. To enablerepo look-ups and downloads online, pass 'local files only=False' as input.`
 
-或者
+Or:
 
-An error occured while synchronizing the model Systran/faster-whisper-large-v3 from the Hugging Face Hub:
-An error happened while trying to locate the files on the Hub and we cannot find the appropriate snapshot folder for the
-specified revision on the local disk. Please check your internet connection and try again.
-Trying to load the model directly from the local cache, if it exists.
+`An error occured while synchronizing the model Systran/faster-whisper-large-v3 from the Hugging Face Hub: An error happened while trying to locate the files on the Hub and we cannot find the appropriate snapshot folder for the specified revision on the local disk. Please check your internet connection and try again. Trying to load the model directly from the local cache, if it exists.`
 
-解决方法：[点击查看如何从网盘手动下载模型](#%E5%AD%97%E5%B9%95%E7%94%9F%E6%88%90-)
+Solution: [Click here to see how to manually download the model from a cloud drive](#subtitle-generation-) (Points to the subtitle generation section which has the links).
 
-## 反馈建议 📢
+## Feedback and Suggestions 📢
 
-- 可以提交 [issue](https://github.com/harry0703/MoneyPrinterTurbo/issues)
-  或者 [pull request](https://github.com/harry0703/MoneyPrinterTurbo/pulls)。
+- You can submit an [issue](https://github.com/harry0703/MoneyPrinterTurbo/issues)
+  or a [pull request](https://github.com/harry0703/MoneyPrinterTurbo/pulls).
 
-## 许可证 📝
+## License 📝
 
-点击查看 [`LICENSE`](LICENSE) 文件
+Click to view the [`LICENSE`](LICENSE) file.
 
 ## Star History
 

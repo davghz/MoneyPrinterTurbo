@@ -206,7 +206,11 @@ def _generate_response(prompt: str) -> str:
                     candidates = response.candidates
                     generated_text = candidates[0].content.parts[0].text
                 except (AttributeError, IndexError) as e:
-                    print("Gemini Error:", e)
+                    logger.error(f"Gemini Error: {e}") # Changed to logger.error
+                    generated_text = "" # Ensure it returns empty string on error here
+                except Exception as e_gen: # Catch other potential errors during content generation
+                    logger.error(f"Gemini content generation error: {e_gen}", exc_info=True)
+                    generated_text = ""
 
                 return generated_text
 
@@ -430,15 +434,29 @@ Please note that you must use English for generating video search terms; Chinese
 
 
 if __name__ == "__main__":
-    video_subject = "生命的意义是什么"
-    script = generate_script(
-        video_subject=video_subject, language="zh-CN", paragraph_number=1
+    video_subject_en = "What is the meaning of life?"
+    video_subject_zh = "生命的意义是什么" # Keep one example in Chinese for testing if needed, or translate all
+
+    logger.info(f"--- Generating script for: {video_subject_en} ---")
+    script_en = generate_script(
+        video_subject=video_subject_en, language="en", paragraph_number=2
     )
-    print("######################")
-    print(script)
-    search_terms = generate_terms(
-        video_subject=video_subject, video_script=script, amount=5
+    logger.info(f"\n--- Script for '{video_subject_en}' ---\n{script_en}")
+
+    logger.info(f"\n--- Generating terms for: {video_subject_en} ---")
+    search_terms_en = generate_terms(
+        video_subject=video_subject_en, video_script=script_en, amount=5
     )
-    print("######################")
-    print(search_terms)
-    
+    logger.info(f"\n--- Terms for '{video_subject_en}' ---\n{search_terms_en}")
+
+    logger.info(f"\n--- Generating script for: {video_subject_zh} (in Chinese) ---")
+    script_zh = generate_script(
+        video_subject=video_subject_zh, language="zh-CN", paragraph_number=1
+    )
+    logger.info(f"\n--- Script for '{video_subject_zh}' ---\n{script_zh}")
+
+    logger.info(f"\n--- Generating terms for: {video_subject_zh} (expecting English terms) ---")
+    search_terms_zh_script = generate_terms(
+        video_subject=video_subject_zh, video_script=script_zh, amount=5
+    )
+    logger.info(f"\n--- Terms for '{video_subject_zh}' ---\n{search_terms_zh_script}")

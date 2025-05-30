@@ -113,12 +113,12 @@ class SiliconflowTTSAdapter(TextToSpeechService):
             raise ValueError("SiliconFlow API key is not configured.")
 
         text = text.strip()
-        
+
         try:
             parts = voice_id.split(":")
             model_name = parts[1]
             voice_with_gender = parts[2]
-            voice_actual = voice_with_gender.split("-")[0] 
+            voice_actual = voice_with_gender.split("-")[0]
             api_voice_param = f"{model_name}:{voice_actual}" # Format for API: "model_name:voice_name"
         except IndexError:
             logger.error(f"Could not parse SiliconFlow voice_id: {voice_id}")
@@ -126,7 +126,7 @@ class SiliconflowTTSAdapter(TextToSpeechService):
 
         voice_rate = float(kwargs.get("voice_rate", 1.0))
         voice_volume = float(kwargs.get("voice_volume", 1.0)) # User-friendly volume (e.g. 1.0 = normal)
-        
+
         # Clamp voice_rate to SiliconFlow's typical supported range [0.25, 4.0]
         if not (0.25 <= voice_rate <= 4.0):
             logger.warning(f"SiliconFlow voice_rate {voice_rate} out of range [0.25, 4.0]. Clamping.")
@@ -142,9 +142,9 @@ class SiliconflowTTSAdapter(TextToSpeechService):
 
         url = "https://api.siliconflow.cn/v1/audio/speech"
         payload = {
-            "model": model_name, 
+            "model": model_name,
             "input": text,
-            "voice": api_voice_param, 
+            "voice": api_voice_param,
             "response_format": kwargs.get("response_format", "mp3"),
             "sample_rate": int(kwargs.get("sample_rate", 32000)),
             "stream": False,
@@ -153,7 +153,7 @@ class SiliconflowTTSAdapter(TextToSpeechService):
         }
         headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
 
-        sub_maker_result: SubMaker = None 
+        sub_maker_result: SubMaker = None
 
         for attempt in range(3): # Retry loop
             try:
@@ -170,7 +170,7 @@ class SiliconflowTTSAdapter(TextToSpeechService):
                     sub_maker_result = SubMaker()
                     try:
                         # moviepy is an optional dependency, attempt import here
-                        from moviepy.editor import AudioFileClip 
+                        from moviepy.editor import AudioFileClip
 
                         audio_clip = AudioFileClip(output_filename)
                         audio_duration_sec = audio_clip.duration
@@ -190,7 +190,7 @@ class SiliconflowTTSAdapter(TextToSpeechService):
                                     continue
                                 sentence_chars = len(sentence_text)
                                 sentence_duration_100ns = int(sentence_chars * char_duration_100ns_per_char)
-                                
+
                                 sub_maker_result.subs.append(sentence_text)
                                 sub_maker_result.offset.append(
                                      (current_offset_100ns, current_offset_100ns + sentence_duration_100ns)
@@ -217,11 +217,11 @@ class SiliconflowTTSAdapter(TextToSpeechService):
                 logger.error(f"SiliconFlow TTS request (attempt {attempt+1}) failed: {e}")
             except Exception as e:
                 logger.error(f"An unexpected error in SiliconFlow TTS (attempt {attempt+1}): {e}", exc_info=True)
-            
+
             if attempt == 2: # Last attempt failed
                 logger.error(f"SiliconFlow TTS failed permanently after 3 attempts for '{voice_id}'.")
                 raise RuntimeError(f"SiliconFlow TTS failed after 3 attempts for '{voice_id}'.")
-        
+
         # Fallback, though should be caught by exception above
         return output_filename, None
 

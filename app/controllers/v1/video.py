@@ -30,7 +30,7 @@ from app.services import state as sm
 from app.services import task as tm
 from app.utils import utils
 
-# 认证依赖项
+# Authentication dependency
 # router = new_router(dependencies=[Depends(base.verify_token)])
 router = new_router()
 
@@ -42,7 +42,7 @@ _redis_password = config.app.get("redis_password", None)
 _max_concurrent_tasks = config.app.get("max_concurrent_tasks", 5)
 
 redis_url = f"redis://:{_redis_password}@{_redis_host}:{_redis_port}/{_redis_db}"
-# 根据配置选择合适的任务管理器
+# Select the appropriate task manager based on configuration
 if _enable_redis:
     task_manager = RedisTaskManager(
         max_concurrent_tasks=_max_concurrent_tasks, redis_url=redis_url
@@ -225,6 +225,17 @@ def upload_bgm_file(request: Request, file: UploadFile = File(...)):
 
 @router.get("/stream/{file_path:path}")
 async def stream_video(request: Request, file_path: str):
+    """
+    Stream a video file with support for HTTP Range Requests.
+
+    Args:
+        request: The incoming FastAPI request.
+        file_path: The path to the video file relative to the tasks directory.
+                   Example: "cd1727ed-3473-42a2-a7da-4faafafec72b/final-1.mp4"
+
+    Returns:
+        A StreamingResponse that streams the video content.
+    """
     tasks_dir = utils.task_dir()
     video_path = os.path.join(tasks_dir, file_path)
     range_header = request.headers.get("Range")
