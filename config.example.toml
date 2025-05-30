@@ -207,6 +207,25 @@ speech_region = ""
 # Get your API key at https://siliconflow.cn
 api_key = ""
 
+[google_tts]
+# Optional: Path to your Google Cloud service account JSON key file.
+# If not provided, Application Default Credentials (ADC) will be used.
+# This can also be set via the GOOGLE_APPLICATION_CREDENTIALS environment variable.
+# service_account_key_path = "/path/to/your/service-account-file.json"
+
+# Default language code for Google TTS (e.g., "en-US")
+# Environment variable: GOOGLE_TTS_LANGUAGE_CODE
+default_language_code = "en-US"
+
+# Default voice name for Google TTS (e.g., "en-US-Wavenet-D")
+# Environment variable: GOOGLE_TTS_VOICE_NAME
+default_voice_name = "en-US-Wavenet-D"
+
+# Default audio encoding ("MP3", "LINEAR16", "OGG_OPUS", etc.)
+# Refer to https://cloud.google.com/text-to-speech/docs/reference/rest/v1/text/synthesize#audioencoding
+# Environment variable: GOOGLE_TTS_AUDIO_ENCODING
+default_audio_encoding = "MP3"
+
 [ui]
 # UI related settings
 # 是否隐藏日志信息

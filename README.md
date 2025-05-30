@@ -60,7 +60,7 @@
 - [x] 视频素材来源 **高清**，而且 **无版权**，也可以使用自己的 **本地素材**
 - [x] 支持 **OpenAI**、**Moonshot**、**Azure**、**gpt4free**、**one-api**、**通义千问**、**Google Gemini**、**Ollama**、**DeepSeek**、 **文心一言**, **Pollinations** 等多种模型接入
     - 中国用户建议使用 **DeepSeek** 或 **Moonshot** 作为大模型提供商（国内可直接访问，不需要VPN。注册就送额度，基本够用）
-
+- [x] 支持 **Azure TTS**、**Google Cloud TTS**、**SiliconFlow TTS** (通过 `edge-tts` 继承的 Azure 功能及新的 Google Cloud 和 SiliconFlow 适配器)
 
 ### 后期计划 📅
 
@@ -248,9 +248,20 @@ python main.py
 
 ## 语音合成 🗣
 
-所有支持的声音列表，可以查看：[声音列表](./docs/voice-list.txt)
+项目支持多种语音合成服务：
 
-2024-04-16 v1.1.2 新增了9种Azure的语音合成声音，需要配置API KEY，该声音合成的更加真实。
+- **Azure TTS**: 包括通过 `edge-tts` (V1 voices) 和 Azure Cognitive Services Speech SDK (V2 voices) 支持的语音。V2 语音通常质量更高，需要配置 Azure Speech Key 和 Region。
+- **Google Cloud TTS**: 新增支持谷歌云文本转语音服务。需要进行认证配置（通过服务账户JSON文件或ADC）。
+- **SiliconFlow TTS**: 支持硅基流动 TTS 服务，需要配置 API Key。
+
+**声音选择约定**:
+- **Azure**: 直接使用 Azure 的语音名称，例如 `zh-CN-XiaoyiNeural-Female` 或 `en-US-AndrewMultilingualNeural-V2-Male`。
+- **Google Cloud TTS**: 使用 `google:` 前缀，后跟 Google Cloud 的 voice ID，例如 `google:en-US-Wavenet-D`。
+- **SiliconFlow TTS**: 使用 `siliconflow:` 前缀，后跟 SiliconFlow 的 voice ID，例如 `siliconflow:FunAudioLLM/CosyVoice2-0.5B:alex-Male`。
+
+所有 Azure 和部分 SiliconFlow 声音列表，可以查看：[声音列表](./docs/voice-list.txt)。对于 Google Cloud TTS 的全部可用声音，请参考其官方文档，或通过 API 查询（未来可能在 UI 中集成）。
+
+请在 `config.toml` 文件中配置相应服务商的 API Key 和其他必要参数，具体参考 `config.example.toml`。
 
 ## 字幕生成 📜
 

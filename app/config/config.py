@@ -37,6 +37,7 @@ def save_config():
         _cfg["app"] = app
         _cfg["azure"] = azure
         _cfg["siliconflow"] = siliconflow
+        _cfg["google_tts"] = google_tts  # Save google_tts config
         _cfg["ui"] = ui
         f.write(toml.dumps(_cfg))
 
@@ -47,6 +48,12 @@ whisper = _cfg.get("whisper", {})
 proxy = _cfg.get("proxy", {})
 azure = _cfg.get("azure", {})
 siliconflow = _cfg.get("siliconflow", {})
+google_tts = _cfg.get("google_tts", {
+    "service_account_key_path": os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"),
+    "default_language_code": os.environ.get("GOOGLE_TTS_LANGUAGE_CODE", "en-US"),
+    "default_voice_name": os.environ.get("GOOGLE_TTS_VOICE_NAME", "en-US-Wavenet-D"),
+    "default_audio_encoding": os.environ.get("GOOGLE_TTS_AUDIO_ENCODING", "MP3"),
+})
 ui = _cfg.get(
     "ui",
     {
