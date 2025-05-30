@@ -38,7 +38,8 @@ def save_config():
         _cfg["azure"] = azure
         _cfg["siliconflow"] = siliconflow
         _cfg["google_tts"] = google_tts
-        _cfg["streaming"] = streaming # Save streaming config
+        _cfg["streaming"] = streaming
+        _cfg["playlist"] = playlist # Save playlist config
         _cfg["ui"] = ui
         f.write(toml.dumps(_cfg))
 
@@ -50,7 +51,7 @@ proxy = _cfg.get("proxy", {})
 azure = _cfg.get("azure", {})
 siliconflow = _cfg.get("siliconflow", {})
 google_tts = _cfg.get("google_tts", {
-    "service_account_key_path": os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"), # This is for TTS client, not YouTube API directly unless same SA is used
+    "service_account_key_path": os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"),
     "default_language_code": os.environ.get("GOOGLE_TTS_LANGUAGE_CODE", "en-US"),
     "default_voice_name": os.environ.get("GOOGLE_TTS_VOICE_NAME", "en-US-Wavenet-D"),
     "default_audio_encoding": os.environ.get("GOOGLE_TTS_AUDIO_ENCODING", "MP3"),
@@ -68,6 +69,17 @@ streaming = _cfg.get("streaming", {
     "default_audio_bitrate": os.environ.get("STREAMING_DEFAULT_AUDIO_BITRATE", "128k"),
     "ffmpeg_input_source": os.environ.get("STREAMING_FFMPEG_INPUT_SOURCE", "lavfi:testsrc=size=1920x1080:rate=30:duration=3600"),
     "ffmpeg_path": os.environ.get("FFMPEG_PATH", "ffmpeg"),
+})
+playlist = _cfg.get("playlist", {
+    "gcs_music_library_bucket": os.environ.get("GCS_MUSIC_LIBRARY_BUCKET"),
+    "gcs_credentials_path": os.environ.get("GCS_PLAYLIST_CREDENTIALS_PATH"), # Can also use GOOGLE_APPLICATION_CREDENTIALS
+    "default_playlist_target_item_count": int(os.environ.get("DEFAULT_PLAYLIST_TARGET_ITEM_COUNT", 10)),
+    "default_playlist_name_prefix": os.environ.get("DEFAULT_PLAYLIST_NAME_PREFIX", "AutoPlaylist"),
+    "default_transition_type": os.environ.get("DEFAULT_TRANSITION_TYPE", "crossfade"),
+    "default_transition_duration_ms": int(os.environ.get("DEFAULT_TRANSITION_DURATION_MS", 3000)),
+    "supported_audio_extensions": [
+        ext.strip() for ext in os.environ.get("SUPPORTED_AUDIO_EXTENSIONS", ".mp3,.wav,.aac").split(',')
+    ]
 })
 ui = _cfg.get(
     "ui",
@@ -116,8 +128,12 @@ except ImportError:
         video_bitrate: str
         audio_bitrate: str
         ffmpeg_input_source: str
-        youtube_live_stream_id: Optional[str] = None
+        youtube_live_stream_id: Optional[str] = None # Keep this for StreamConfig
+        # Note: PlaylistItem specific defaults like transition type/duration are handled
+        # by PlaylistItem's definition or when GCSContentManager creates items.
 
+# Make StreamConfig available for get_default_stream_config
+from app.services.playlist.models import PlaylistItem # Needed for PlaylistItem defaults if we set them here
 
 def get_default_stream_config() -> StreamConfig:
     """
@@ -128,9 +144,19 @@ def get_default_stream_config() -> StreamConfig:
         stream_key=streaming.get("media_cdn_stream_key", "test"),
         rtmp_url=streaming.get("media_cdn_rtmp_url", "rtmp://localhost/live"),
         resolution=streaming.get("default_resolution", "1920x1080"),
-        fps=int(streaming.get("default_fps", 30)),
+        fps=int(streaming.get("default_fps", 30)), # Ensure fps is int
         video_bitrate=streaming.get("default_video_bitrate", "4500k"),
         audio_bitrate=streaming.get("default_audio_bitrate", "128k"),
         ffmpeg_input_source=streaming.get("ffmpeg_input_source", "lavfi:testsrc=size=1920x1080:rate=30:duration=3600"),
-        youtube_live_stream_id=streaming.get("youtube_live_stream_id")
+        youtube_live_stream_id=streaming.get("youtube_live_stream_id") # This comes from [streaming]
     )
+
+# Expose individual config sections for direct import if needed by modules
+# Example: from app.config.config import streaming_settings, playlist_settings
+# This is optional and depends on preferred import style.
+# For now, modules typically import the main `config` object and access sections like `config.streaming`.
+# However, making them available like this can be convenient:
+# streaming_settings = streaming
+# playlist_settings = playlist
+# google_tts_settings = google_tts
+# etc.

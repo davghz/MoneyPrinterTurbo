@@ -281,3 +281,38 @@ ffmpeg_input_source = "lavfi:testsrc=size=1920x1080:rate=30:duration=3600"
 # Optional: Full path to the FFmpeg executable (if not in system PATH or to use a specific version)
 # Environment variable: FFMPEG_PATH
 # ffmpeg_path = "/usr/bin/ffmpeg"
+
+
+[playlist]
+# Name of the Google Cloud Storage bucket containing the AI music library.
+# Environment Variable: GCS_MUSIC_LIBRARY_BUCKET
+gcs_music_library_bucket = "your-ai-music-library-bucket"
+
+# Optional: Path to Google Cloud service account JSON file for GCS access by the playlist manager.
+# If not set, Application Default Credentials (ADC) will be used.
+# Can also use the global GOOGLE_APPLICATION_CREDENTIALS if permissions are appropriate.
+# Environment Variable: GCS_PLAYLIST_CREDENTIALS_PATH
+# gcs_credentials_path = "/path/to/your/gcs-playlist-credentials.json"
+
+# Default number of items for automatically generated playlists.
+# Environment Variable: DEFAULT_PLAYLIST_TARGET_ITEM_COUNT
+default_playlist_target_item_count = 10
+
+# Default prefix for names of automatically generated playlists.
+# Environment Variable: DEFAULT_PLAYLIST_NAME_PREFIX
+default_playlist_name_prefix = "AutoPlaylist"
+
+# Default transition type between tracks (e.g., "none", "crossfade", "fadein").
+# This is used by GCSContentManager when creating PlaylistItem objects if metadata doesn't specify.
+# Environment Variable: DEFAULT_TRANSITION_TYPE
+default_transition_type = "crossfade"
+
+# Default transition duration in milliseconds.
+# Used by GCSContentManager when creating PlaylistItem objects if metadata doesn't specify.
+# Environment Variable: DEFAULT_TRANSITION_DURATION_MS
+default_transition_duration_ms = 3000
+
+# Comma-separated list of supported audio file extensions for GCS library scanning (include leading dot).
+# Example: ".mp3,.wav,.aac,.flac,.ogg,.opus"
+# Environment Variable: SUPPORTED_AUDIO_EXTENSIONS
+supported_audio_extensions = [".mp3", ".wav", ".aac"]

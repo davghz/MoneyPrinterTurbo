@@ -310,6 +310,32 @@ While the exact method of triggering streams will depend on the application's AP
 5.  Call `orchestrator.stop_stream()` to end the stream.
 6.  Configuration can be updated using `orchestrator.update_configuration(new_config)`, which will typically restart an active stream.
 
+## Playlist Handling & Scheduling Engine
+
+The application includes a sophisticated engine for dynamic playlist creation and management, primarily designed for continuous audio streaming (e.g., an AI-driven radio station).
+
+### Overview
+This engine allows for the creation of playlists from a library of audio content stored in Google Cloud Storage (GCS). It supports dynamic playlist generation based on various criteria, scheduling of these playlists, and handling of transitions between tracks.
+
+### Key Components
+*   **`PlaylistManagerService` (`app/services/playlist/playlist_manager_service.py`):** The main facade for interacting with the playlist system. It coordinates the generator and scheduler to create, schedule, and advance playlists.
+*   **`GCSContentManager` (`app/services/playlist/gcs_content_manager.py`):** Responsible for accessing the audio library in Google Cloud Storage. It lists available audio tracks and retrieves their metadata. Metadata for each track (e.g., `track.mp3`) is expected to be in a corresponding JSON file (e.g., `track.mp3.meta.json`) in GCS.
+*   **`PlaylistGenerator` (`app/services/playlist/playlist_generator.py`):** Creates new playlists by selecting tracks from the `GCSContentManager` based on specified criteria (like genre or mood tags) or default settings (e.g., target item count).
+*   **`PlaylistScheduler` (`app/services/playlist/scheduler.py`):** Manages an in-memory queue of playlists, controls the playback order, and tracks the status of the current playlist and item.
+*   **Data Models (`app/services/playlist/models.py`):** Defines core data structures like `PlaylistItem` (representing an audio track with its metadata, including transition information) and `Playlist` (an ordered collection of `PlaylistItem` objects with scheduling and status attributes).
+
+### Features
+*   **Dynamic Playlist Generation:** Create playlists on-the-fly based on content tags, desired duration, or item count.
+*   **GCS Integration:** Leverages Google Cloud Storage for storing and retrieving the audio content library. Track metadata is stored alongside audio files.
+*   **Configurable Transitions:** Supports defining transitions (e.g., crossfade, fade-in, none) between tracks. The specifics are detailed in `docs/playlist_transition_strategy.md`.
+*   **Scheduling:** A simple in-memory queue manages the order of playlists. Playlists can be added to the front or back of the queue.
+*   **Configuration:** Playlist behavior (default item count, GCS bucket, supported audio types, default transitions) is configurable via `config.toml` under the `[playlist]` section.
+
+### Future Considerations (Conceptual)
+*   **Advanced Scheduling:** Integration with more robust scheduling systems like Cloud Composer or Apache Airflow for complex, time-based playlist scheduling and event triggering.
+*   **AI-Driven Curation:** Enhancing `PlaylistGenerator` with AI models to create more contextually relevant and engaging playlists based on deeper content analysis or user preferences.
+*   **Persistent State:** Moving playlist and schedule state from in-memory to a persistent database for resilience.
+
 ## Subtitle Generation 📜
 
 Currently, two methods for subtitle generation are supported:
