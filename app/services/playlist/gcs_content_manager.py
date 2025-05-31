@@ -1,8 +1,10 @@
 """
-Manages content stored in Google Cloud Storage (GCS) for playlists.
+Manages audio content stored in Google Cloud Storage (GCS), serving as a key component
+of the playlist handling engine.
 
-This includes listing audio tracks, fetching their metadata, and potentially
-generating signed URLs for direct access.
+This module is responsible for interacting with a GCS bucket to discover audio tracks,
+retrieve associated metadata (from `.meta.json` files), and construct `PlaylistItem`
+objects. It can also generate GCS signed URLs for direct media access if needed.
 """
 import json
 import os
@@ -67,10 +69,11 @@ class GCSContentManager:
         Initializes the GCSContentManager.
 
         Args:
-            bucket_name: The name of the GCS bucket.
-            credentials_path: Optional path to a service account JSON file for GCS authentication.
-                              If None, Application Default Credentials (ADC) are used.
-            logger_instance: An optional Loguru logger instance.
+            bucket_name: The name of the GCS bucket to manage.
+            credentials_path: Optional path to a Google Cloud service account JSON file.
+                              If not provided, Application Default Credentials (ADC) will be used.
+            logger_instance: An optional Loguru logger instance. If None, a default
+                             logger will be used.
         """
         self.bucket_name = bucket_name
         self.credentials_path = credentials_path
@@ -108,10 +111,13 @@ class GCSContentManager:
         Assumes metadata file is named 'object_path.meta.json'.
 
         Args:
-            gcs_object_path: The path of the audio object within the bucket (e.g., "path/to/track.mp3").
+            gcs_object_path: The path of the audio object within the bucket
+                             (e.g., "path/to/your/track.mp3").
 
         Returns:
-            A dictionary containing the parsed metadata, or None if not found or invalid.
+            A dictionary containing the parsed metadata if the corresponding
+            `.meta.json` file is found and valid. Returns None if the metadata
+            file does not exist, cannot be downloaded, or contains invalid JSON.
         """
         if not self.storage_client:
             self.logger.error("GCS client not initialized. Cannot fetch metadata.")
@@ -143,11 +149,18 @@ class GCSContentManager:
         Lists audio tracks from the GCS bucket and attempts to pair them with metadata.
 
         Args:
-            prefix: Optional prefix to filter objects in the bucket (e.g., "path/to/audio/").
-            limit: Optional maximum number of audio tracks to return.
+            prefix: Optional path prefix to filter objects within the GCS bucket
+                    (e.g., "artists/some_artist/").
+            limit: Optional maximum number of audio tracks to retrieve.
 
         Returns:
-            A list of PlaylistItem objects.
+            A list of `PlaylistItem` objects. Each item is constructed from GCS blob
+            information and its corresponding `.meta.json` file. Tracks are skipped
+            if metadata is missing, essential fields like `duration_seconds` are
+            absent or invalid, or if they don't match supported audio extensions
+            defined in the application configuration. Transition parameters for items
+            are taken from metadata if present, otherwise defaults from app config
+            are used.
         """
         if not self.storage_client:
             self.logger.error("GCS client not initialized. Cannot list audio tracks.")
@@ -236,11 +249,16 @@ class GCSContentManager:
         Requires service account with "Service Account Token Creator" role or user credentials.
 
         Args:
-            blob_name: The name/path of the blob within the bucket.
-            expiration_minutes: URL validity period in minutes.
+            blob_name: The full path (name) of the blob within the GCS bucket
+                       (e.g., "path/to/your/track.mp3").
+            expiration_minutes: The duration in minutes for which the generated URL
+                                will be valid.
 
         Returns:
-            A pre-signed URL string, or None if generation fails.
+            A v4 pre-signed URL string for GET access to the blob, or None if
+            URL generation fails (e.g., blob not found, insufficient permissions for
+            the credentials used by the GCS client - typically requires "Service
+            Account Token Creator" role if using a service account).
         """
         if not self.storage_client:
             self.logger.error("GCS client not initialized. Cannot generate signed URL.")

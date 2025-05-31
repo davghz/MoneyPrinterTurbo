@@ -204,13 +204,16 @@ class PlaylistScheduler:
         """
         Advances to the next item in the currently playing playlist.
 
-        If the end of the playlist is reached, it calls `finish_current_playlist()`
-        and returns None. The caller is then responsible for calling `get_next_playlist()`
-        to proceed to the next playlist in the schedule.
+        Advances to the next item in the currently playing playlist.
+
+        If the end of the playlist is reached, this method internally calls a helper
+        to mark the playlist as finished and move it to history. It then returns None.
+        The caller, upon receiving None, is responsible for calling `get_next_playlist()`
+        to fetch and start the subsequent playlist from the schedule.
 
         Returns:
             The next PlaylistItem to be played, or None if the current playlist
-            ended or no playlist is active.
+            has ended or no playlist is actively playing.
         """
         with self.lock: # Lock for accessing/modifying current_playing_playlist and its index
             if not self.current_playing_playlist or \
