@@ -1,0 +1,85 @@
+{
+  "global_settings": {
+    "youtube_rtmp_url": "rtmp://a.rtmp.youtube.com/live2",
+    "youtube_stream_key": "YOUR_YOUTUBE_STREAM_KEY_HERE",
+    "default_video_resolution": "1920x1080",
+    "default_video_bitrate": "4500k",
+    "default_audio_bitrate": "128k",
+    "default_fps": 30,
+    "ffmpeg_path": "ffmpeg",
+    "log_level": "INFO"
+  },
+  "playlists": [
+    {
+      "id": "lofi_chill_static",
+      "name": "Lofi Chill Vibes - Static",
+      "description": "A curated list of lofi chill tracks for focused work or relaxation.",
+      "type": "static",
+      "items": [
+        "gs://your-music-bucket/audio/lofi/track1_chill.mp3",
+        "gs://your-music-bucket/audio/lofi/track2_focus.wav",
+        "gs://your-music-bucket/audio/lofi/track3_relax.aac"
+      ],
+      "loop": true
+    },
+    {
+      "id": "nature_sounds_static",
+      "name": "Ambient Nature Sounds - Static",
+      "description": "Continuous loop of calming nature recordings.",
+      "type": "static",
+      "items": [
+        "gs://your-music-bucket/audio/nature/forest_stream_long_play.opus",
+        "gs://your-music-bucket/audio/nature/gentle_rain_and_thunder.mp3"
+      ],
+      "loop": true
+    },
+    {
+      "id": "dynamic_electronic_rules",
+      "name": "Dynamic Electronic Mix (Conceptual)",
+      "description": "AI-generated playlist of electronic music based on rules (not fully implemented by orchestrator yet).",
+      "type": "dynamic_rule",
+      "rules": {
+        "genre": "electronic",
+        "mood_tags": ["energetic", "driving"],
+        "min_duration_minutes": 120,
+        "exclude_artists": ["SomeArtist"]
+      }
+    },
+    {
+      "id": "emergency_audio_loop",
+      "name": "Emergency Fallback Loop",
+      "description": "A single, reliable, long audio file for fallback purposes.",
+      "type": "static",
+      "items": [
+        "gs://your-music-bucket/audio/fallback/long_ambient_music_loop.mp3"
+      ],
+      "loop": true
+    }
+  ],
+  "schedule": [
+    {
+      "playlist_id": "lofi_chill_static",
+      "start_time_utc": "2024-07-15T09:00:00Z",
+      "duration_minutes": 240
+    },
+    {
+      "playlist_id": "nature_sounds_static",
+      "start_time_utc": "2024-07-15T13:00:00Z",
+      "duration_minutes": 120
+    },
+    {
+      "playlist_id": "lofi_chill_static"
+    }
+  ],
+  "rotation": {
+    "enabled": true,
+    "playlist_ids": [
+      "lofi_chill_static",
+      "nature_sounds_static"
+    ],
+    "rotate_every_minutes": 60
+  },
+  "fallback": {
+    "playlist_id": "emergency_audio_loop"
+  }
+}

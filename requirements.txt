@@ -14,3 +14,7 @@ redis==5.2.0
 python-multipart==0.0.19
 pyyaml
 requests>=2.31.0
+google-cloud-storage
+google-api-python-client
+google-auth
+google-auth-oauthlib

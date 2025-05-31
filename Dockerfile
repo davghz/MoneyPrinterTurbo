@@ -29,10 +29,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 # Expose the port the app runs on
-EXPOSE 8501
+# EXPOSE 8501 # No longer needed for the StreamOrchestrator CLI application
 
 # Command to run the application
-CMD ["streamlit", "run", "./webui/Main.py","--browser.serverAddress=127.0.0.1","--server.enableCORS=True","--browser.gatherUsageStats=False"]
+# main.py will default to stream_config.json or stream_config.example.json if --config is not found.
+# We default to stream_config.json here, assuming users might mount their own.
+CMD ["python", "main.py", "--config", "stream_config.json"]
 
 # 1. Build the Docker image using the following command
 # docker build -t moneyprinterturbo .
