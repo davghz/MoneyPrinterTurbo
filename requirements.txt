@@ -18,3 +18,11 @@ google-cloud-storage
 google-api-python-client
 google-auth
 google-auth-oauthlib
+magenta
+tensorflow
+pretty_midi
+numpy
+scipy
+tf_slim
+pydub
+soundfile

@@ -316,3 +316,33 @@ default_transition_duration_ms = 3000
 # Example: ".mp3,.wav,.aac,.flac,.ogg,.opus"
 # Environment Variable: SUPPORTED_AUDIO_EXTENSIONS
 supported_audio_extensions = [".mp3", ".wav", ".aac"]
+
+
+[audiogenerator]
+# Prefix for storing generated audio within the GCS music library bucket.
+# Environment Variable: AUDIO_GENERATOR_GCS_PREFIX
+gcs_generated_audio_prefix = "generated_audio/"
+
+# Optional: Path to MusicVAE model checkpoint (example, actual paths/models may vary)
+# Environment Variable: MAGENTA_CHECKPOINT_MUSICVAE
+# magenta_checkpoint_musicvae = "/path/to/music_vae/checkpoint_directory"
+
+# Optional: Path to MelodyRNN model bundle file (example)
+# Environment Variable: MAGENTA_CHECKPOINT_MELODYRNN
+# magenta_checkpoint_melodyrnn = "/path/to/melody_rnn/bundle.mag"
+
+# Default output audio format for generated tracks (e.g., "mp3", "wav", "aac")
+# Environment Variable: AUDIO_GENERATOR_DEFAULT_FORMAT
+default_output_format = "mp3"
+
+# Default audio sample rate for generated tracks in Hz
+# Environment Variable: AUDIO_GENERATOR_DEFAULT_SAMPLE_RATE
+default_audio_sample_rate = 44100
+
+# Default audio bitrate for generated tracks (e.g., "128k", "192k", "256k")
+# Environment Variable: AUDIO_GENERATOR_DEFAULT_BITRATE
+default_audio_bitrate = "192k"
+
+# Target peak dBFS for audio normalization. Set to a value like -1.0 to -3.0 for headroom.
+# Environment Variable: NORMALIZATION_TARGET_PEAK_DBFS
+normalization_target_peak_dbfs = -1.0

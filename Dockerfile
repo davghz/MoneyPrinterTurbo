@@ -14,6 +14,13 @@ RUN apt-get update && apt-get install -y \
     git \
     imagemagick \
     ffmpeg \
+    # Added for Magenta/MIDI synthesis:
+    fluidsynth \
+    fluid-soundfont-gm \
+    libffi-dev \
+    libncurses5-dev \
+    libsdl2-dev \
+    libsndfile1 \
     && rm -rf /var/lib/apt/lists/*
 
 # Fix security policy for ImageMagick

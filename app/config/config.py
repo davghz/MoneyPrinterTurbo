@@ -40,6 +40,7 @@ def save_config():
         _cfg["google_tts"] = google_tts
         _cfg["streaming"] = streaming
         _cfg["playlist"] = playlist # Save playlist config
+        _cfg["audiogenerator"] = audiogenerator # Save audiogenerator config
         _cfg["ui"] = ui
         f.write(toml.dumps(_cfg))
 
@@ -80,6 +81,15 @@ playlist = _cfg.get("playlist", {
     "supported_audio_extensions": [
         ext.strip() for ext in os.environ.get("SUPPORTED_AUDIO_EXTENSIONS", ".mp3,.wav,.aac").split(',')
     ]
+})
+audiogenerator = _cfg.get("audiogenerator", {
+    "gcs_generated_audio_prefix": os.environ.get("AUDIO_GENERATOR_GCS_PREFIX", "generated_audio/"),
+    "magenta_checkpoint_musicvae": os.environ.get("MAGENTA_CHECKPOINT_MUSICVAE"),
+    "magenta_checkpoint_melodyrnn": os.environ.get("MAGENTA_CHECKPOINT_MELODYRNN"),
+    "default_output_format": os.environ.get("AUDIO_GENERATOR_DEFAULT_FORMAT", "mp3"),
+    "default_audio_sample_rate": int(os.environ.get("AUDIO_GENERATOR_DEFAULT_SAMPLE_RATE", 44100)),
+    "default_audio_bitrate": os.environ.get("AUDIO_GENERATOR_DEFAULT_BITRATE", "192k"),
+    "normalization_target_peak_dbfs": float(os.environ.get("NORMALIZATION_TARGET_PEAK_DBFS", -1.0)),
 })
 ui = _cfg.get(
     "ui",

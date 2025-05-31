@@ -289,6 +289,64 @@ class GCSContentManager:
             self.logger.error(f"Failed to generate signed URL for '{blob_name}': {e}", exc_info=True)
             return None
 
+    def upload_file(self, local_file_path: str, destination_blob_name: str) -> bool:
+        """
+        Uploads a local file to the GCS bucket.
+
+        Args:
+            local_file_path: Path to the local file to upload.
+            destination_blob_name: The name of the blob in GCS (e.g., "path/to/your/file.mp3").
+
+        Returns:
+            True if upload was successful, False otherwise.
+        """
+        if not self.storage_client:
+            self.logger.error("GCS client not initialized. Cannot upload file.")
+            return False
+        if not os.path.exists(local_file_path):
+            self.logger.error(f"Local file not found: {local_file_path}")
+            return False
+
+        try:
+            bucket = self.storage_client.bucket(self.bucket_name)
+            blob = bucket.blob(destination_blob_name)
+
+            self.logger.info(f"Uploading local file '{local_file_path}' to 'gs://{self.bucket_name}/{destination_blob_name}'...")
+            blob.upload_from_filename(local_file_path)
+            self.logger.success(f"Successfully uploaded '{local_file_path}' to 'gs://{self.bucket_name}/{destination_blob_name}'.")
+            return True
+        except Exception as e:
+            self.logger.error(f"Failed to upload file '{local_file_path}' to GCS: {e}", exc_info=True)
+            return False
+
+    def upload_string_as_blob(self, data_string: str, destination_blob_name: str, content_type: str = 'text/plain') -> bool:
+        """
+        Uploads a string as a blob to the GCS bucket.
+
+        Args:
+            data_string: The string data to upload.
+            destination_blob_name: The name of the blob in GCS (e.g., "path/to/your/metadata.json").
+            content_type: The content type of the blob (e.g., 'application/json', 'text/plain').
+
+        Returns:
+            True if upload was successful, False otherwise.
+        """
+        if not self.storage_client:
+            self.logger.error("GCS client not initialized. Cannot upload string data.")
+            return False
+
+        try:
+            bucket = self.storage_client.bucket(self.bucket_name)
+            blob = bucket.blob(destination_blob_name)
+
+            self.logger.info(f"Uploading string data to 'gs://{self.bucket_name}/{destination_blob_name}' with content type '{content_type}'...")
+            blob.upload_from_string(data_string, content_type=content_type)
+            self.logger.success(f"Successfully uploaded string data to 'gs://{self.bucket_name}/{destination_blob_name}'.")
+            return True
+        except Exception as e:
+            self.logger.error(f"Failed to upload string data to GCS: {e}", exc_info=True)
+            return False
+
 
 # Example Usage
 if __name__ == "__main__":
