@@ -346,3 +346,49 @@ default_audio_bitrate = "192k"
 # Target peak dBFS for audio normalization. Set to a value like -1.0 to -3.0 for headroom.
 # Environment Variable: NORMALIZATION_TARGET_PEAK_DBFS
 normalization_target_peak_dbfs = -1.0
+
+# Default target duration for generated Magenta tracks in seconds.
+# Environment Variable: AUDIO_GENERATOR_MAGENTA_DURATION
+default_magenta_target_duration_seconds = 180
+
+# Default temperature for Magenta generation (controls randomness/creativity).
+# Environment Variable: AUDIO_GENERATOR_MAGENTA_TEMPERATURE
+default_magenta_temperature = 1.0
+
+# Default duration for generated soundscapes in seconds.
+# Environment Variable: AUDIO_GENERATOR_SOUNDSCAPE_DURATION
+default_soundscape_duration_seconds = 600
+
+# Default base frequency for binaural beats soundscapes in Hz.
+# Environment Variable: AUDIO_GENERATOR_BINAURAL_BASE_FREQ
+default_binaural_base_freq = 100.0
+
+# Default beat frequency (difference) for binaural beats soundscapes in Hz.
+# Environment Variable: AUDIO_GENERATOR_BINAURAL_BEAT_FREQ
+default_binaural_beat_freq = 10.0
+
+# Default GCS paths for base layers in mixed soundscapes. Comma-separated if using env var.
+# Example: ["gs://your-bucket/sounds/rain.mp3", "gs://your-bucket/sounds/wind.mp3"]
+# Environment Variable: AUDIO_GENERATOR_MIXED_SCAPE_LAYERS (e.g., "gs://bucket/rain.mp3,gs://bucket/wind.mp3")
+default_mixed_soundscape_base_layers = []
+
+# Optional: Default GCS path for a pre-recorded ASMR track to use for "asmr" soundscape type.
+# If not set, a placeholder sound might be generated.
+# Environment Variable: AUDIO_GENERATOR_ASMR_TRACK_PATH
+# default_asmr_track_gcs_path = "gs://your-bucket/asmr_tracks/default_asmr.mp3"
+
+# Default Voice ID for TTS generation (e.g., Google Cloud TTS voice name).
+# Environment Variable: AUDIO_GENERATOR_TTS_VOICE_ID
+default_tts_voice_id = "en-US-Standard-C"
+
+# Default Language Code for TTS generation.
+# Environment Variable: AUDIO_GENERATOR_TTS_LANG_CODE
+default_tts_lang_code = "en-US"
+
+# Default speaking rate for TTS generation (1.0 is normal).
+# Environment Variable: AUDIO_GENERATOR_TTS_SPEAKING_RATE
+default_tts_speaking_rate = 1.0
+
+# Default pitch for TTS generation (0.0 is normal).
+# Environment Variable: AUDIO_GENERATOR_TTS_PITCH
+default_tts_pitch = 0.0

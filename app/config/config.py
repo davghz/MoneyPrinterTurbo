@@ -90,6 +90,19 @@ audiogenerator = _cfg.get("audiogenerator", {
     "default_audio_sample_rate": int(os.environ.get("AUDIO_GENERATOR_DEFAULT_SAMPLE_RATE", 44100)),
     "default_audio_bitrate": os.environ.get("AUDIO_GENERATOR_DEFAULT_BITRATE", "192k"),
     "normalization_target_peak_dbfs": float(os.environ.get("NORMALIZATION_TARGET_PEAK_DBFS", -1.0)),
+    "default_magenta_target_duration_seconds": int(os.environ.get("AUDIO_GENERATOR_MAGENTA_DURATION", 180)),
+    "default_magenta_temperature": float(os.environ.get("AUDIO_GENERATOR_MAGENTA_TEMPERATURE", 1.0)),
+    "default_soundscape_duration_seconds": int(os.environ.get("AUDIO_GENERATOR_SOUNDSCAPE_DURATION", 600)),
+    "default_binaural_base_freq": float(os.environ.get("AUDIO_GENERATOR_BINAURAL_BASE_FREQ", 100.0)),
+    "default_binaural_beat_freq": float(os.environ.get("AUDIO_GENERATOR_BINAURAL_BEAT_FREQ", 10.0)),
+    "default_mixed_soundscape_base_layers": [
+        s.strip() for s in os.environ.get("AUDIO_GENERATOR_MIXED_SCAPE_LAYERS", "").split(',') if s.strip()
+    ] if os.environ.get("AUDIO_GENERATOR_MIXED_SCAPE_LAYERS") else [], # Parses comma-separated string, defaults to empty list
+    "default_asmr_track_gcs_path": os.environ.get("AUDIO_GENERATOR_ASMR_TRACK_PATH"),
+    "default_tts_voice_id": os.environ.get("AUDIO_GENERATOR_TTS_VOICE_ID", "en-US-Standard-C"),
+    "default_tts_lang_code": os.environ.get("AUDIO_GENERATOR_TTS_LANG_CODE", "en-US"),
+    "default_tts_speaking_rate": float(os.environ.get("AUDIO_GENERATOR_TTS_SPEAKING_RATE", 1.0)),
+    "default_tts_pitch": float(os.environ.get("AUDIO_GENERATOR_TTS_PITCH", 0.0)),
 })
 ui = _cfg.get(
     "ui",

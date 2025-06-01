@@ -18,6 +18,51 @@ except ImportError:
     np = None
     sf = None
 
+# Magenta specific imports
+try:
+    from magenta.models.music_vae import MusicVAE
+    from magenta.models.melody_rnn import MelodyRnnSequenceGenerator
+    from magenta.models.shared import sequence_generator_bundle
+    from magenta.music import DEFAULT_QUARTERS_PER_MINUTE, note_sequence_to_pretty_midi, midi_file_to_note_sequence
+    from magenta.protobuf import generator_pb2
+    from magenta.protobuf import music_pb2 # For NoteSequence
+    MAGENTA_AVAILABLE = True
+except ImportError as e:
+    logger.warning(f"Magenta libraries not fully available: {e}. Magenta generation will fail.")
+    MAGENTA_AVAILABLE = False
+    MusicVAE = None
+    MelodyRnnSequenceGenerator = None
+    sequence_generator_bundle = None
+    DEFAULT_QUARTERS_PER_MINUTE = 120.0 # Provide a fallback
+    # Define dummy classes or objects for type hinting or attribute access if needed
+    class MockProto:
+        def __init__(self): pass
+        def add(self, **kwargs): pass # For generator_options.generate_sections
+        def CopyFrom(self, other): pass # For generator_options.input_sequence
+
+    generator_pb2 = MagicMock()
+    generator_pb2.GeneratorOptions = MockProto
+    music_pb2 = MagicMock()
+    music_pb2.NoteSequence = MagicMock
+
+
+# TensorFlow setup for Magenta (TF1 compatibility)
+try:
+    import tensorflow.compat.v1 as tf
+    tf.disable_v2_behavior()
+    TF_AVAILABLE = True
+    logger.info("TensorFlow V1 compatibility mode enabled for Magenta.")
+except AttributeError: # If already disabled or using TF1 directly
+    logger.info("TensorFlow V2 behavior already disabled or using TF1 directly.")
+    TF_AVAILABLE = True # Potentially
+except ImportError as e:
+    logger.warning(f"TensorFlow not installed or not configured correctly for Magenta: {e}. Magenta generation will fail.")
+    TF_AVAILABLE = False
+except Exception as e: # Catch any other tf error
+    logger.warning(f"Could not disable TF v2 behavior: {e}")
+    TF_AVAILABLE = False
+
+
 # Assuming 'app' is in PYTHONPATH. Adjust if necessary.
 from app.config.config import Config # Type hint
 from app.services.playlist.gcs_content_manager import GCSManager
@@ -134,34 +179,68 @@ class AudioGenerator:
 
     def _load_magenta_models(self) -> None:
         """
-        Placeholder for loading Magenta models.
-        Actual model loading from checkpoints is deferred.
+        Loads Magenta models from configured checkpoints or bundles.
         """
-        # from unittest.mock import MagicMock # Moved to global imports for __main__
+        if not MAGENTA_AVAILABLE or not TF_AVAILABLE:
+            self.logger.error("Magenta or TensorFlow not available. Skipping model loading.")
+            self.music_vae_model = None
+            self.melody_rnn_model = None
+            return
 
-        # Example: Load MusicVAE model
-        music_vae_checkpoint_path = self.magenta_checkpoint_musicvae
-        if music_vae_checkpoint_path:
-            self.logger.info(f"Attempting to load MusicVAE model from: {music_vae_checkpoint_path} (placeholder).")
-            # self.music_vae_model = magenta.models.music_vae.MusicVAE(checkpoint_dir_or_path=music_vae_checkpoint_path) # Actual loading
-            self.music_vae_model = MagicMock() # Placeholder
-            self.logger.info("MusicVAE model 'loaded' (mocked).")
+        # --- MusicVAE Loading ---
+        music_vae_checkpoint_path = self.app_config.audiogenerator.get('magenta_checkpoint_musicvae')
+        if music_vae_checkpoint_path and music_vae_checkpoint_path != "None": # Check for "None" string from config too
+            self.logger.info(f"Loading MusicVAE model from checkpoint: {music_vae_checkpoint_path}")
+            try:
+                # This part might need to run within a tf.Graph().as_default() context
+                # if models are not loaded/used in the same graph context later.
+                # For now, attempting direct load.
+                self.music_vae_model = MusicVAE.load_checkpoint(music_vae_checkpoint_path)
+                self.logger.success(f"MusicVAE model loaded successfully from {music_vae_checkpoint_path}")
+            except tf.errors.NotFoundError as e:
+                self.logger.error(f"MusicVAE checkpoint not found at {music_vae_checkpoint_path}: {e}")
+                self.music_vae_model = None
+            except Exception as e:
+                self.logger.error(f"Failed to load MusicVAE model: {e}", exc_info=True)
+                self.music_vae_model = None
         else:
-            self.logger.warning("MusicVAE model checkpoint path not configured. MusicVAE generation will not be available.")
+            self.logger.info("MusicVAE model checkpoint path not configured. MusicVAE generation will not be available.")
             self.music_vae_model = None
 
-        # Example: Load MelodyRNN model
-        melody_rnn_bundle_path = self.magenta_checkpoint_melodyrnn
-        if melody_rnn_bundle_path:
-            self.logger.info(f"Attempting to load MelodyRNN model from: {melody_rnn_bundle_path} (placeholder).")
-            # self.melody_rnn_model = magenta.models.melody_rnn.MelodyRnnModel(bundle_file=melody_rnn_bundle_path) # Actual loading
-            self.melody_rnn_model = MagicMock() # Placeholder
-            self.logger.info("MelodyRNN model 'loaded' (mocked).")
-        else:
-            self.logger.warning("MelodyRNN bundle path not configured. MelodyRNN generation will not be available.")
-            self.melody_rnn_model = None
+        # --- MelodyRNN Loading ---
+        melody_rnn_bundle_path = self.app_config.audiogenerator.get('magenta_checkpoint_melodyrnn')
+        if melody_rnn_bundle_path and melody_rnn_bundle_path != "None":
+            self.logger.info(f"Loading MelodyRNN model from bundle: {melody_rnn_bundle_path}")
+            try:
+                bundle = sequence_generator_bundle.read_bundle_file(melody_rnn_bundle_path)
+                generator_map = MelodyRnnSequenceGenerator.get_generator_map()
 
-        self.logger.info("Magenta model loading step complete (placeholders used).")
+                melody_rnn_generator_id = bundle.generator_description.id
+                if not melody_rnn_generator_id: # Fallback if ID is not in bundle desc
+                    # Attempt to use a common default or first available if ID is empty
+                    if 'basic_rnn' in generator_map:
+                        melody_rnn_generator_id = 'basic_rnn'
+                    elif generator_map:
+                        melody_rnn_generator_id = list(generator_map.keys())[0]
+                    else: # Should not happen if Magenta is installed correctly
+                         self.logger.error("MelodyRNN generator_map is empty.")
+                         self.melody_rnn_model = None
+                         return # Exit early for this model
+
+                self.logger.info(f"Attempting to initialize MelodyRNN generator: {melody_rnn_generator_id}")
+                if melody_rnn_generator_id in generator_map:
+                    self.melody_rnn_model = generator_map[melody_rnn_generator_id](checkpoint=None, bundle=bundle)
+                    self.melody_rnn_model.initialize()
+                    self.logger.success(f"MelodyRNN model '{melody_rnn_generator_id}' initialized successfully from {melody_rnn_bundle_path}.")
+                else:
+                    self.logger.error(f"MelodyRNN generator ID '{melody_rnn_generator_id}' (from bundle or default) not found in generator_map. Available: {list(generator_map.keys())}")
+                    self.melody_rnn_model = None
+            except Exception as e:
+                self.logger.error(f"Failed to load MelodyRNN model: {e}", exc_info=True)
+                self.melody_rnn_model = None
+        else:
+            self.logger.info("MelodyRNN bundle path not configured. MelodyRNN generation will not be available.")
+            self.melody_rnn_model = None
 
 
     def _prepare_metadata(
@@ -445,8 +524,8 @@ class AudioGenerator:
 
 
     def generate_magenta_track(self, genre: str, mood: Optional[List[str]] = None,
-                               target_duration_seconds: int = 180,
-                               temperature: float = 1.0,
+                               target_duration_seconds: Optional[int] = None,
+                               temperature: Optional[float] = None,
                                seed_midi_path: Optional[str] = None) -> Optional[Tuple[str, str]]:
         """
         Generates a music track using Magenta based on genre and other parameters.
@@ -462,60 +541,118 @@ class AudioGenerator:
         Returns:
             A tuple (gcs_audio_path, gcs_metadata_path) if successful, else None.
         """
-        self.logger.info(f"Request to generate Magenta track: genre='{genre}', mood={mood}, duration={target_duration_seconds}s, temp={temperature}, seed='{seed_midi_path}'")
+        audiogen_cfg = self.app_config.audiogenerator
+
+        # Use provided args or fallback to config defaults
+        duration_sec = target_duration_seconds if target_duration_seconds is not None else int(audiogen_cfg.get('default_magenta_target_duration_seconds', 180))
+        temp = temperature if temperature is not None else float(audiogen_cfg.get('default_magenta_temperature', 1.0))
+
+        self.logger.info(f"Request to generate Magenta track: genre='{genre}', mood={mood}, duration={duration_sec}s, temp={temp}, seed='{seed_midi_path}'")
 
         if not pretty_midi or not np or not sf:
             self.logger.error("pretty_midi, numpy, or soundfile not available. Cannot generate Magenta track.")
             return None
 
-        # Model selection (conceptual)
-        model_name_for_metadata = "GenericMagentaPlaceholder"
-        if genre == "lofi" and self.music_vae_model:
-            # model_to_use = self.music_vae_model
-            model_name_for_metadata = "MusicVAE_Lofi_Placeholder"
-            self.logger.info("Using placeholder for MusicVAE for Lo-fi genre.")
-        elif (genre == "edm" or genre == "ambient") and self.melody_rnn_model:
-            # model_to_use = self.melody_rnn_model
-            model_name_for_metadata = "MelodyRNN_Placeholder"
-            self.logger.info(f"Using placeholder for MelodyRNN for {genre} genre.")
-        elif self.music_vae_model: # Default to VAE if specific model not chosen but VAE exists
-            # model_to_use = self.music_vae_model
-            model_name_for_metadata = "MusicVAE_General_Placeholder"
-            self.logger.info(f"Using placeholder for MusicVAE as default for {genre} genre.")
-        else:
-            self.logger.error("No suitable Magenta models are loaded/mocked. Cannot generate track.")
+        # Model Selection & MIDI Generation Logic
+        note_sequence: Optional[music_pb2.NoteSequence] = None
+        model_name_for_metadata = "Magenta_Unknown"
+
+        # Determine which model to use based on genre and availability
+        # This is a simplified selection logic.
+        selected_model_type = None
+        if genre.lower() in ["lofi", "ambient", "electronic_vae"] and self.music_vae_model:
+            selected_model_type = "MusicVAE"
+        elif genre.lower() in ["edm", "electronic_rnn", "melody", "lofi_rnn"] and self.melody_rnn_model: # Added lofi_rnn as an example
+            selected_model_type = "MelodyRNN"
+        elif self.music_vae_model: # Fallback to MusicVAE if available
+             selected_model_type = "MusicVAE"
+        elif self.melody_rnn_model: # Fallback to MelodyRNN if available
+            selected_model_type = "MelodyRNN"
+
+        if not selected_model_type:
+            self.logger.error(f"No suitable or loaded Magenta model available for genre '{genre}'. Cannot generate track.")
             return None
 
-        # --- Simulate MIDI generation ---
-        self.logger.info(f"MIDI generation using {model_name_for_metadata} would occur here. Using placeholder MIDI.")
-        midi_data = pretty_midi.PrettyMIDI()
-        instrument_program = pretty_midi.instrument_name_to_program('Synth Pad') # Generic
-        if genre == "lofi":
-            instrument_program = pretty_midi.instrument_name_to_program('Rhodes Piano')
-        elif genre == "edm":
-            instrument_program = pretty_midi.instrument_name_to_program('Synth Bass 1')
+        # MIDI Generation
+        try:
+            if selected_model_type == "MusicVAE":
+                self.logger.info(f"Generating {genre} track using MusicVAE...")
+                model_name_for_metadata = f"MusicVAE_{genre.capitalize()}"
+                # MusicVAE length is in steps. Approx. 16 steps per bar.
+                # target_steps calculation: (duration_sec / 60_sec_per_min) * QPM * steps_per_quarter (e.g. 4 for 16th notes)
+                # Using DEFAULT_QUARTERS_PER_MINUTE (120 QPM) and 4 steps per quarter (16th note resolution)
+                qpm = DEFAULT_QUARTERS_PER_MINUTE
+                steps_per_second = qpm / 60.0 * 4.0
+                num_steps = int(duration_sec * steps_per_second)
+                num_steps = max(32, min(num_steps, 1024)) # Cap steps to a reasonable range (e.g., 2 to 64 bars)
 
-        instrument = pretty_midi.Instrument(program=instrument_program)
+                self.logger.debug(f"MusicVAE generation: target_steps={num_steps}, temperature={temp}")
+                generated_sequences = self.music_vae_model.sample(n=1, length=num_steps, temperature=temp)
+                if generated_sequences: note_sequence = generated_sequences[0]
 
-        # Simple C-major scale-like pattern for placeholder
-        pitches = [60, 62, 64, 65, 67, 69, 71, 72] # C D E F G A B C
-        for i, pitch in enumerate(pitches * 2): # Repeat for a bit longer sequence
-            note = pretty_midi.Note(velocity=int(np.random.uniform(80, 100)), pitch=pitch, start=i * 0.4, end=(i + 1) * 0.4)
-            instrument.notes.append(note)
-        midi_data.instruments.append(instrument)
+            elif selected_model_type == "MelodyRNN":
+                self.logger.info(f"Generating {genre} track using MelodyRNN...")
+                model_name_for_metadata = f"MelodyRNN_{genre.capitalize()}"
 
+                generator_options = generator_pb2.GeneratorOptions()
+                # For MelodyRNN, generate_section defines the length of the generated segment.
+                # It's often better to generate a reasonable number of measures and then handle duration.
+                # Let's generate a fixed number of bars (e.g., 16-32) and then handle overall duration later.
+                # This is a simplification.
+                qpm = DEFAULT_QUARTERS_PER_MINUTE
+                # Generate, for example, 16 bars, 4 quarters per bar = 64 quarters
+                # Total seconds for this segment = (num_quarters / QPM) * 60
+                # For MelodyRNN, it's often about number of steps.
+                # Let's aim for a certain number of seconds close to target, then handle true duration via looping/truncation later
+                # This is still approximate.
+                self.logger.warning(f"MelodyRNN generation with precise target_duration_seconds ({duration_sec}s) is complex; generating sequence and will handle duration post-synthesis.")
+                generator_options.generate_sections.add(start_time_seconds=0.0, end_time_seconds=float(duration_sec)) # Request duration
+
+                # Seed/Primer logic (simplified)
+                if seed_midi_path and os.path.exists(seed_midi_path):
+                    try:
+                        primer_ns = midi_file_to_note_sequence(seed_midi_path)
+                        generator_options.input_sequence.CopyFrom(primer_ns)
+                        self.logger.info(f"Using seed MIDI: {seed_midi_path} for MelodyRNN.")
+                    except Exception as e_seed:
+                        self.logger.warning(f"Could not load or use seed MIDI {seed_midi_path}: {e_seed}. Generating without primer.")
+                else:
+                     if seed_midi_path: self.logger.warning(f"Seed MIDI path {seed_midi_path} not found.")
+
+                note_sequence = self.melody_rnn_model.generate(generator_options=generator_options)
+
+        except Exception as e:
+            self.logger.error(f"Magenta {selected_model_type} generation failed: {e}", exc_info=True)
+            note_sequence = None
+
+        if not note_sequence or not note_sequence.notes:
+            self.logger.error(f"Magenta model ({selected_model_type}) failed to generate a valid note sequence with notes for genre '{genre}'.")
+            return None
+
+        # Convert NoteSequence to PrettyMIDI
+        try:
+            self.logger.debug(f"Converting NoteSequence to PrettyMIDI. Total time from NoteSequence: {note_sequence.total_time:.2f}s")
+            midi_data = note_sequence_to_pretty_midi(note_sequence)
+            if not midi_data.instruments or not any(instr.notes for instr in midi_data.instruments):
+                self.logger.error("Conversion to PrettyMIDI resulted in no notes or instruments.")
+                return None
+        except Exception as e:
+            self.logger.error(f"Failed to convert NoteSequence to PrettyMIDI: {e}", exc_info=True)
+            return None
+
+        # Save temporary MIDI file
         temp_midi_dir = "temp_audio_files"
         os.makedirs(temp_midi_dir, exist_ok=True)
-        temp_midi_path = os.path.join(temp_midi_dir, f"temp_generated_{uuid.uuid4().hex[:8]}.mid")
+        temp_midi_path = os.path.join(temp_midi_dir, f"temp_magenta_{uuid.uuid4().hex[:8]}.mid")
         try:
             midi_data.write(temp_midi_path)
-            self.logger.info(f"Placeholder MIDI written to {temp_midi_path}")
+            self.logger.info(f"Magenta-generated MIDI written to {temp_midi_path}")
         except Exception as e:
-            self.logger.error(f"Failed to write placeholder MIDI: {e}")
-            return None
+            self.logger.error(f"Failed to write Magenta-generated MIDI: {e}")
+            return None # Cannot proceed without MIDI file
 
-        # --- MIDI to Audio Synthesis ---
-        temp_wav_path = os.path.join(temp_midi_dir, f"temp_generated_{uuid.uuid4().hex[:8]}.wav")
+        # MIDI to Audio Synthesis
+        temp_wav_path = os.path.join(temp_midi_dir, f"temp_magenta_{uuid.uuid4().hex[:8]}.wav")
         actual_duration_seconds = 0
         try:
             sample_rate = self.default_sample_rate
@@ -529,7 +666,7 @@ class AudioGenerator:
             return None
 
         # --- Duration Handling (Placeholder) ---
-        self.logger.warning(f"Duration handling to meet target {target_duration_seconds}s not fully implemented. Using generated length: {actual_duration_seconds:.2f}s.")
+        self.logger.warning(f"Duration handling to meet target {duration_sec}s not fully implemented. Using generated length: {actual_duration_seconds:.2f}s.")
         # TODO: Implement looping/stitching or generate longer sequences to meet target_duration_seconds
 
         # --- Prepare Metadata ---
@@ -582,8 +719,8 @@ class AudioGenerator:
             self.logger.error(f"Failed to normalize and save Magenta track for genre: {genre}")
             return None
 
-    def generate_soundscape(self, scape_type: str, target_duration_seconds: int = 600,
-                            base_frequency: float = 100.0, beat_frequency: float = 10.0,
+    def generate_soundscape(self, scape_type: str, target_duration_seconds: Optional[int] = None,
+                            base_frequency: Optional[float] = None, beat_frequency: Optional[float] = None,
                             mix_paths: Optional[List[str]] = None) -> Optional[Tuple[str, str]]:
         """
         Generates various types of soundscapes.
@@ -598,16 +735,20 @@ class AudioGenerator:
         Returns:
             A tuple (gcs_audio_path, gcs_metadata_path) if successful, else None.
         """
-        self.logger.info(f"Request to generate soundscape: type='{scape_type}', duration={target_duration_seconds}s")
+        audiogen_cfg = self.app_config.audiogenerator
+
+        # Use provided args or fallback to config defaults
+        duration_sec = target_duration_seconds if target_duration_seconds is not None else int(audiogen_cfg.get('default_soundscape_duration_seconds', 600))
+
+        self.logger.info(f"Request to generate soundscape: type='{scape_type}', duration={duration_sec}s")
 
         if not np or not sf:
             self.logger.error("numpy or soundfile not available. Cannot generate soundscape.")
             return None
 
-        audiogen_cfg = self.app_config.audiogenerator
         sample_rate = int(audiogen_cfg.get('default_audio_sample_rate', 44100))
         num_channels = 2  # Stereo for binaural, good default for others
-        num_samples = int(target_duration_seconds * sample_rate)
+        num_samples = int(duration_sec * sample_rate)
 
         audio_data_np = None
         model_used = ""
@@ -628,20 +769,25 @@ class AudioGenerator:
         elif scape_type == "binaural_beats":
             if num_channels != 2:
                 self.logger.warning("Binaural beats require stereo output. Forcing stereo.")
-                # num_channels = 2 # Already default
-            f_left = base_frequency
-            f_right = base_frequency + beat_frequency
-            t = np.linspace(0, target_duration_seconds, num_samples, endpoint=False)
+
+            # Use provided args or fallback to config defaults for binaural frequencies
+            base_freq_val = base_frequency if base_frequency is not None else float(audiogen_cfg.get('default_binaural_base_freq', 100.0))
+            beat_freq_val = beat_frequency if beat_frequency is not None else float(audiogen_cfg.get('default_binaural_beat_freq', 10.0))
+
+            f_left = base_freq_val
+            f_right = base_freq_val + beat_freq_val
+            t = np.linspace(0, duration_sec, num_samples, endpoint=False)
 
             left_channel = 0.4 * np.sin(2 * np.pi * f_left * t) # Use 0.4 to leave headroom
             right_channel = 0.4 * np.sin(2 * np.pi * f_right * t)
             audio_data_np = np.vstack((left_channel, right_channel)).T
             model_used = "BinauralBeatGenerator"
-            generation_params.update({'base_frequency_hz': base_frequency, 'beat_frequency_hz': beat_frequency})
+            generation_params.update({'base_frequency_hz': base_freq_val, 'beat_frequency_hz': beat_freq_val})
 
         elif scape_type == "mixed_soundscape":
-            if mix_paths and 2 <= len(mix_paths) <= 3:
-                self.logger.info(f"Conceptual: Mixing of {mix_paths} would occur here using pydub or similar.")
+            actual_mix_paths = mix_paths if mix_paths is not None else audiogen_cfg.get('default_mixed_soundscape_base_layers', [])
+            if actual_mix_paths and 2 <= len(actual_mix_paths) <= 3:
+                self.logger.info(f"Conceptual: Mixing of {actual_mix_paths} would occur here using pydub or similar.")
                 # For this subtask, generate placeholder brown noise instead of actual mixing
                 noise = np.random.normal(0, 1, num_samples)
                 audio_data_np_mono = np.cumsum(noise)
@@ -650,38 +796,198 @@ class AudioGenerator:
                     audio_data_np = np.array([audio_data_np_mono, audio_data_np_mono]).T
                 else:
                     audio_data_np = audio_data_np_mono[:, np.newaxis]
-                model_used = "SoundscapeMixer_Placeholder"
-                generation_params.update({'source_paths': mix_paths})
-                # TODO: Implement actual download and mixing of GCS paths.
-                # This would involve:
-                # 1. Downloading files from GCS to temporary local paths.
-                #    temp_downloaded_paths = []
-                #    for path in mix_paths:
-                #        blob_name = path.replace(f"gs://{self.gcs_bucket_name}/", "")
-                #        temp_local_path = f"temp_{os.path.basename(blob_name)}"
-                #        self.gcs_manager.storage_client.bucket(self.gcs_bucket_name).blob(blob_name).download_to_filename(temp_local_path)
-                #        temp_downloaded_paths.append(temp_local_path)
-                #        temp_files_to_clean.append(temp_local_path)
-                # 2. Loading with pydub:
-                #    from pydub import AudioSegment
-                #    segments = [AudioSegment.from_file(p) for p in temp_downloaded_paths]
-                # 3. Adjusting to target_duration_seconds (loop/truncate) and mixing.
-                #    mixed_sound = segments[0][:target_duration_seconds*1000]
-                #    for seg in segments[1:]:
-                #        mixed_sound = mixed_sound.overlay(seg[:target_duration_seconds*1000])
-                # 4. Converting pydub AudioSegment to numpy array for sf.write or saving directly.
-                #    samples = np.array(mixed_sound.get_array_of_samples())
-                #    if mixed_sound.channels == 2:
-                #        audio_data_np = samples.reshape((-1, 2))
-                #    else: # Mono
-                #        audio_data_np = samples.reshape((-1, 1))
-                #    audio_data_np = audio_data_np / (2**(mixed_sound.sample_width*8-1)) # Normalize
-            else:
-                self.logger.error("For 'mixed_soundscape', 'mix_paths' must be a list of 2-3 GCS paths.")
+                if not self.gcs_manager or not self.gcs_manager.storage_client:
+                    self.logger.error("GCSManager not available for mixed_soundscape. Cannot download base layers.")
+                    return None
+                if not AudioSegment:
+                    self.logger.error("Pydub (AudioSegment) not available for mixed_soundscape.")
+                    return None
+
+                temp_audio_dir = "temp_audio_files"
+                os.makedirs(temp_audio_dir, exist_ok=True)
+                downloaded_local_paths = []
+
+                try:
+                    for gcs_path in actual_mix_paths:
+                        if not gcs_path.startswith(f"gs://{self.gcs_bucket_name}/"):
+                            self.logger.warning(f"Skipping invalid GCS path (must be in configured bucket): {gcs_path}")
+                            continue
+
+                        blob_name = gcs_path.replace(f"gs://{self.gcs_bucket_name}/", "")
+                        # Create a unique local filename
+                        temp_local_file = tempfile.NamedTemporaryFile(
+                            dir=temp_audio_dir,
+                            delete=False,
+                            suffix=os.path.splitext(gcs_path)[1] or ".tmp"
+                        )
+                        temp_local_path = temp_local_file.name
+                        temp_local_file.close() # Close it so download_to_filename can write to it
+
+                        self.logger.info(f"Downloading GCS file {gcs_path} to {temp_local_path} for mixing.")
+                        self.gcs_manager.storage_client.bucket(self.gcs_bucket_name).blob(blob_name).download_to_filename(temp_local_path)
+                        downloaded_local_paths.append(temp_local_path)
+                        temp_files_to_clean.append(temp_local_path) # Ensure cleanup
+
+                    if not downloaded_local_paths:
+                        self.logger.error("No valid audio layers downloaded for mixed_soundscape.")
+                        return None
+
+                    segments = []
+                    for path in downloaded_local_paths:
+                        try:
+                            segments.append(AudioSegment.from_file(path))
+                        except CouldntDecodeError:
+                            self.logger.warning(f"Could not decode downloaded file: {path}. Skipping.")
+                        except Exception as e:
+                            self.logger.warning(f"Error loading downloaded file {path} with pydub: {e}")
+
+                    if not segments:
+                        self.logger.error("No audio segments could be loaded for mixing.")
+                        return None
+
+                    target_duration_ms = int(duration_sec * 1000)
+                    processed_segments = []
+                    for seg in segments:
+                        seg = seg.set_channels(num_channels)
+                        seg = seg.set_frame_rate(sample_rate)
+                        if len(seg) < target_duration_ms:
+                            seg = seg * (target_duration_ms // len(seg) + 1)
+                        seg = seg[:target_duration_ms]
+                        processed_segments.append(seg)
+
+                    base_sound = processed_segments[0]
+                    for i, next_segment in enumerate(processed_segments[1:]):
+                        # Reduce volume of subsequent layers, e.g. by 6dB for first overlay, 9dB for second.
+                        volume_reduction = 6 + (i * 3)
+                        base_sound = base_sound.overlay(next_segment - volume_reduction)
+
+                    # Convert to NumPy array
+                    audio_data_np_int = np.array(base_sound.get_array_of_samples())
+                    if base_sound.channels == 2:
+                        audio_data_np_int = audio_data_np_int.reshape((-1, 2))
+
+                    # Normalize pydub's int samples to float range [-1, 1]
+                    # pydub uses sample_width in bytes (e.g. 2 for 16-bit)
+                    max_val = (2**(base_sound.sample_width * 8 - 1))
+                    audio_data_np = audio_data_np_int.astype(np.float32) / max_val
+                    model_used = "SoundscapeMixer_Active"
+                    generation_params.update({'source_paths': actual_mix_paths, 'mixed_layers': len(segments)})
+
+                except Exception as e:
+                    self.logger.error(f"Error during mixed_soundscape processing: {e}", exc_info=True)
+                    return None # Cleanup will be handled in the main try-finally of generate_soundscape
+                # No 'finally' here for downloaded_local_paths cleanup, it's handled by temp_files_to_clean
+
+            else: # No valid mix_paths or wrong number of paths
+                self.logger.error("For 'mixed_soundscape', 'mix_paths' (or default_mixed_soundscape_base_layers in config) must be a list of 2-3 valid GCS paths.")
                 return None
 
-        elif scape_type == "asmr": # Placeholder
-            self.logger.info("ASMR generation is conceptual. Using placeholder brown noise.")
+        elif scape_type == "asmr":
+            asmr_track_gcs_path = audiogen_cfg.get('default_asmr_track_gcs_path')
+            if asmr_track_gcs_path and isinstance(asmr_track_gcs_path, str) and self.gcs_manager and self.gcs_manager.storage_client:
+                self.logger.info(f"Using pre-configured ASMR track: {asmr_track_gcs_path}")
+                temp_audio_dir = "temp_audio_files"
+                os.makedirs(temp_audio_dir, exist_ok=True)
+
+                if not asmr_track_gcs_path.startswith(f"gs://{self.gcs_bucket_name}/"):
+                     self.logger.error(f"ASMR track GCS path must be within the configured bucket: {self.gcs_bucket_name}. Path: {asmr_track_gcs_path}")
+                     # Fall through to placeholder noise generation
+                else:
+                    asmr_blob_name = asmr_track_gcs_path.replace(f"gs://{self.gcs_bucket_name}/", "")
+                    # Use a temporary file for download
+                    temp_local_asmr_file = tempfile.NamedTemporaryFile(
+                        dir=temp_audio_dir,
+                        delete=False,
+                        suffix=os.path.splitext(asmr_blob_name)[1] or ".tmp"
+                    )
+                    temp_local_asmr_path = temp_local_asmr_file.name
+                    temp_local_asmr_file.close()
+                    temp_files_to_clean.append(temp_local_asmr_path)
+
+                    try:
+                        self.logger.info(f"Downloading ASMR track {asmr_track_gcs_path} to {temp_local_asmr_path}")
+                        self.gcs_manager.storage_client.bucket(self.gcs_bucket_name).blob(asmr_blob_name).download_to_filename(temp_local_asmr_path)
+
+                        # The downloaded file (WAV, MP3, etc.) will be passed to _normalize_and_save_audio
+                        # Its duration needs to be read here for metadata.
+                        if AudioSegment:
+                            try:
+                                asmr_segment = AudioSegment.from_file(temp_local_asmr_path)
+                                duration_sec = round(asmr_segment.duration_seconds, 3) # Update duration_sec for metadata
+                                self.logger.info(f"ASMR track downloaded. Duration: {duration_sec}s")
+                            except CouldntDecodeError:
+                                self.logger.error(f"Could not decode downloaded ASMR track: {temp_local_asmr_path}. Falling back to placeholder.")
+                                # Fall through to placeholder noise generation by not setting audio_data_np
+                        else: # pydub not available, can't get duration from non-WAV, pass anyway.
+                             self.logger.warning("Pydub not available, cannot confirm duration of downloaded ASMR track if not WAV. Using configured target duration for metadata.")
+
+                        # Mark that audio_data_np is not to be generated, but temp_local_asmr_path is the source
+                        # This requires _normalize_and_save_audio to handle this path.
+                        # For now, we will still save it to temp_wav_path after loading with soundfile if it's WAV,
+                        # or rely on _normalize_and_save_audio to handle the format.
+                        # To simplify, _normalize_and_save_audio always expects a local file.
+                        # So, the downloaded temp_local_asmr_path IS the file to be processed.
+                        # We skip audio_data_np generation.
+                        model_used = "ASMR_PreconfiguredTrack"
+                        # The rest of the flow (saving, metadata, upload) will use temp_local_asmr_path
+                        # We need to ensure temp_wav_path is set to this for the later sf.write to be skipped
+                        # and for _normalize_and_save_audio to pick it up.
+                        # This is a bit clunky. Let's make it so that if audio_data_np is None,
+                        # but a specific temp_wav_path (which is now the downloaded file) is set, it uses that.
+
+                        # Re-think: the main flow expects temp_wav_path to be written from audio_data_np.
+                        # So, if we use a pre-recorded track, it should become the local_audio_file_path
+                        # for _normalize_and_save_audio directly.
+                        # The current structure will write audio_data_np to temp_wav_path.
+                        # We need to pass temp_local_asmr_path directly to _normalize_and_save_audio
+                        # and skip the sf.write step for this specific case.
+                        # This means generate_soundscape needs to return earlier for this path.
+
+                        content_id = uuid.uuid4().hex
+                        output_filename_base = f"{scape_type.lower().replace(' ', '_')}_{content_id[:8]}"
+                        gcs_path_base_for_saving = os.path.join(self.gcs_generated_audio_prefix, scape_type.lower(), output_filename_base)
+                        conceptual_final_gcs_path = f"gs://{self.gcs_bucket_name}/{gcs_path_base_for_saving}.{self.default_output_format}"
+
+                        # Update duration_sec for metadata if read from file
+                        if 'asmr_segment' in locals() and asmr_segment:
+                            duration_sec = round(asmr_segment.duration_seconds, 3)
+                        elif sf: # Try with soundfile if it's WAV, otherwise use target_duration
+                            try:
+                                info = sf.info(temp_local_asmr_path)
+                                duration_sec = round(info.duration, 3)
+                            except Exception:
+                                self.logger.warning(f"Could not get duration via soundfile for {temp_local_asmr_path}. Using target_duration for metadata.")
+                                pass # duration_sec remains as target_duration
+
+                        metadata = self._prepare_metadata(
+                            content_id=content_id,
+                            title=f"ASMR Preconfigured Track - {os.path.basename(asmr_track_gcs_path)}",
+                            gcs_audio_path=conceptual_final_gcs_path,
+                            duration_seconds=float(duration_sec),
+                            audio_format=self.default_output_format, # Target, will be converted
+                            sample_rate=self.default_sample_rate, # Target, will be resampled
+                            bitrate=self.default_bitrate,
+                            model_used=model_used,
+                            genre="soundscape",
+                            mood_tags=["asmr", "calming"],
+                            additional_info={"generation_params": {"source_gcs_path": asmr_track_gcs_path}}
+                        )
+                        result = self._normalize_and_save_audio(
+                            local_audio_file_path=temp_local_asmr_path, # Pass downloaded file directly
+                            output_gcs_path_base=gcs_path_base_for_saving,
+                            metadata=metadata
+                        )
+                        # temp_local_asmr_path is already in temp_files_to_clean if _normalize_and_save_audio expects it
+                        # _normalize_and_save_audio adds local_audio_file_path to its own temp_files_to_clean
+                        # So no need to add it again here.
+                        return result # Early exit for this specific path
+
+                    except Exception as e:
+                        self.logger.error(f"Failed to download or process pre-configured ASMR track {asmr_track_gcs_path}: {e}", exc_info=True)
+                        # Fall through to placeholder noise generation if download/processing fails
+
+            # Fallback for ASMR if no path or download failed:
+            self.logger.info("ASMR: Using placeholder brown noise.")
             noise = np.random.normal(0, 1, num_samples)
             audio_data_np_mono = np.cumsum(noise)
             audio_data_np_mono = audio_data_np_mono / np.max(np.abs(audio_data_np_mono)) * 0.5
@@ -725,7 +1031,7 @@ class AudioGenerator:
             content_id=content_id,
             title=f"{scape_type.replace('_', ' ').title()} Soundscape - {content_id[:8]}",
             gcs_audio_path=conceptual_final_gcs_path,
-            duration_seconds=float(target_duration_seconds), # Ensure float
+            duration_seconds=float(duration_sec), # Use potentially config-derived duration
             audio_format=self.default_output_format,
             sample_rate=sample_rate,
             bitrate=self.default_bitrate,
@@ -797,24 +1103,33 @@ class AudioGenerator:
         tts_kwargs = {}
         if speaking_rate is not None:
             tts_kwargs['speaking_rate'] = speaking_rate
-        if pitch is not None:
-            tts_kwargs['pitch'] = pitch
+        # Resolve parameters with defaults from config
+        audiogen_cfg = self.app_config.audiogenerator
+        resolved_voice_id = voice_id # voice_id is mandatory in current signature
+        resolved_lang_code = lang_code if lang_code is not None else audiogen_cfg.get('default_tts_lang_code', "en-US")
+        resolved_speaking_rate = speaking_rate if speaking_rate is not None else float(audiogen_cfg.get('default_tts_speaking_rate', 1.0))
+        resolved_pitch = pitch if pitch is not None else float(audiogen_cfg.get('default_tts_pitch', 0.0))
+
+        tts_kwargs = {}
+        if resolved_speaking_rate is not None: # Use resolved values
+            tts_kwargs['speaking_rate'] = resolved_speaking_rate
+        if resolved_pitch is not None: # Use resolved values
+            tts_kwargs['pitch'] = resolved_pitch
         if AudioEncoding: # Check if AudioEncoding was imported
              tts_kwargs['audio_encoding'] = AudioEncoding.LINEAR16 # Request WAV output
         else:
             self.logger.warning("AudioEncoding type not available, TTS client will use its default encoding.")
 
-
-        self.logger.debug(f"Calling TTS client with: voice='{voice_id}', lang='{lang_code}', output='{temp_raw_audio_path}', kwargs={tts_kwargs}")
+        self.logger.debug(f"Calling TTS client with: voice='{resolved_voice_id}', lang='{resolved_lang_code}', output='{temp_raw_audio_path}', kwargs={tts_kwargs}")
 
         try:
             # synthesize_speech returns (output_filename, word_timings_list)
             # output_filename here is the same as temp_raw_audio_path if successful
             saved_audio_path, subtitle_data = self.tts_client.synthesize_speech(
                 text=text_to_speak,
-                voice_id=voice_id,
+                voice_id=resolved_voice_id, # Use resolved
                 output_filename=temp_raw_audio_path,
-                language_code=lang_code,
+                language_code=resolved_lang_code, # Use resolved
                 **tts_kwargs
             )
             if not saved_audio_path or not os.path.exists(saved_audio_path):
@@ -843,10 +1158,12 @@ class AudioGenerator:
         target_audio_format = self.app_config.audiogenerator.get('default_output_format', 'mp3')
         conceptual_final_gcs_path = f"gs://{self.gcs_bucket_name}/{gcs_path_base_for_saving}.{target_audio_format}"
 
-        generation_params_meta = {'voice_id': voice_id, 'lang_code': lang_code}
-        if speaking_rate is not None: generation_params_meta['speaking_rate'] = speaking_rate
-        if pitch is not None: generation_params_meta['pitch'] = pitch
-        # Store word timings (subtitle_data) if available
+        generation_params_meta = {
+            'voice_id': resolved_voice_id,
+            'lang_code': resolved_lang_code,
+            'speaking_rate': resolved_speaking_rate,
+            'pitch': resolved_pitch
+        }
         if subtitle_data: generation_params_meta['word_timings'] = subtitle_data
 
 
@@ -858,7 +1175,7 @@ class AudioGenerator:
             audio_format=target_audio_format, # Target format after processing
             sample_rate=self.default_sample_rate, # This might differ from TTS output, _normalize_and_save_audio should handle resampling
             bitrate=self.default_bitrate,
-            model_used=f"GoogleCloudTTS_{voice_id}",
+            model_used=f"GoogleCloudTTS_{resolved_voice_id}",
             genre="speech",
             additional_info={
                 "transcript": text_to_speak,
